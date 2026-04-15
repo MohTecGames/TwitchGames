@@ -1,0 +1,330 @@
+ <!  
+ /* 
+ * =========================================================================
+ * COPYRIGHT & ATTRIBUTION NOTICE
+ * =========================================================================
+ * CREATED BY: MohTecGames
+ * 
+ * NOTICE: This work is protected. Any reproduction, distribution, or use 
+ * of this code, its logic, or its assets requires prior written approval 
+ * from MohTecGames.
+ * 
+ * -------------------------------------------------------------------------
+ * CONTENT CREDITS:
+ * Tarot interpretations and meanings are inspired by and credited to:
+ * "The Big Book of Tarot Meanings: The Beginner's Guide to Reading the Cards"
+ * (Paperback – 15 Mar. 2022) by Sam Magdaleno (Author).
+ * 
+ * -------------------------------------------------------------------------
+ * TECHNICAL CREDITS:
+ * This project utilizes Comfy.JS for Twitch chat integration.
+ * Created by Instafluff.
+ * Library: https://github.com/instafluff/comfy.js
+ * =========================================================================
+ */
+--> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Shooter URL Generator</title>
+    <style>
+        /* Crucial: Ensures padding doesn't break width calculations */
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0ff;
+            --secondary: #ff79c6;
+            --bg: #050510;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border: rgba(0, 255, 255, 0.3);
+        }
+
+        body {
+            margin: 0;
+            padding: 40px 20px;
+            background-color: var(--bg);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 { color: var(--primary); text-shadow: 0 0 10px var(--primary); margin: 0 0 10px 0; }
+        p.subtitle { color: #aaa; margin-bottom: 40px; text-align: center; }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        .section-title {
+            border-left: 4px solid var(--secondary);
+            padding-left: 15px;
+            margin: 40px 0 20px 0;
+            font-size: 1.2rem;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* --- INPUT BOX STYLING --- */
+        .input-group {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label { font-size: 0.8rem; color: #aaa; text-transform: uppercase; }
+
+        input {
+            background: #111;
+            border: 1px solid #333;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            outline: none;
+            width: 100%;
+        }
+
+        input:focus { border-color: var(--primary); }
+
+        /* --- GRID LAYOUTS --- */
+        /* Player settings: 2 or 4 columns depending on width */
+        .player-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        /* Enemy settings: 1 to 3 columns depending on width */
+        .enemy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* Small helper for X/Y side-by-side */
+        .row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+        .row > div { flex: 1; }
+
+        /* --- ENEMY CARD SPECIFIC --- */
+        .enemy-card {
+            background: rgba(255, 121, 198, 0.05);
+            border: 1px solid rgba(255, 121, 198, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .enemy-header {
+            color: var(--secondary);
+            font-weight: bold;
+            font-size: 1.1rem;
+            border-bottom: 1px solid rgba(255, 121, 198, 0.2);
+            padding-bottom: 10px;
+            margin-bottom: 5px;
+        }
+
+        /* --- RESULT AREA --- */
+        .result-area {
+            position: sticky;
+            bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+            background: #111;
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid var(--primary);
+            margin-top: 60px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+            text-align: center;
+            z-index: 100;
+        }
+
+        #generatedUrl {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--primary);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            text-align: center;
+            word-break: break-all;
+            padding: 5px;
+        }
+
+        .btn-container { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+
+        button {
+            padding: 12px 30px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        .btn-generate { background: var(--primary); color: #000; }
+        .btn-generate:hover { background: #fff; box-shadow: 0 0 15px var(--primary); }
+
+        .btn-copy { background: var(--secondary); color: #fff; }
+        .btn-copy:hover { background: #fff; color: var(--secondary); }
+
+        @media (max-width: 600px) {
+            .player-grid, .enemy-grid { grid-template-columns: 1fr; }
+            .result-area { position: relative; bottom: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 Space Shooter URL Maker</h1>
+    <p class="subtitle">Configure your Twitch experience and generate a custom link.</p>
+
+    <div class="container">
+        
+        <!-- STEP 1: BASE URL -->
+        <div class="section-title">Step 1: Base Link</div>
+        <div class="input-group" style="max-width: 600px;">
+            <label>Your Game File URL</label>
+            <input type="text" id="baseUrl" placeholder="e.g. index.html or https://yourwebsite.com/game.html">
+        </div>
+
+        <!-- STEP 2: PLAYER SETTINGS -->
+        <div class="section-title">Step 2: Player Customization</div>
+        <div class="player-grid">
+            <div class="input-group">
+                <label>Twitch Channel</label>
+                <input type="text" class="p-param" name="channel" placeholder="MohTecGames">
+            </div>
+            <div class="input-group">
+                <label>Ship Image URL</label>
+                <input type="text" class="p-param" name="ship" placeholder="https://link.com/ship.png">
+            </div>
+            <div class="input-group">
+                <label>Ship Emote URL</label>
+                <input type="text" class="p-param" name="emote" placeholder="https://link.com/emote.png">
+            </div>
+            <div class="input-group">
+                <label>Emote Position (X & Y)</label>
+                <div class="row">
+                    <div><input type="text" class="p-param" name="emoteX" placeholder="X (0.5)"></div>
+                    <div><input type="text" class="p-param" name="emoteY" placeholder="Y (0.5)"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: ENEMY SETTINGS -->
+        <div class="section-title">Step 3: Enemy Customization (1-5)</div>
+        <div class="enemy-grid" id="enemyContainer">
+            <!-- JS will inject 5 enemy cards here -->
+        </div>
+
+    </div>
+
+    <!-- RESULT AREA -->
+    <div class="result-area">
+        <input type="text" id="generatedUrl" readonly placeholder="Your generated URL will appear here...">
+        <div class="btn-container">
+            <button class="btn-generate" onclick="generateURL()">Generate URL</button>
+            <button class="btn-copy" onclick="copyUrl()">Copy to Clipboard</button>
+        </div>
+    </div>
+
+    <script>
+        const enemyContainer = document.getElementById('enemyContainer');
+
+        // Generate the 5 Enemy Input Cards
+        for (let i = 1; i <= 5; i++) {
+            const card = document.createElement('div');
+            card.className = 'enemy-card';
+            card.innerHTML = `
+                <div class="enemy-header">ENEMY ${i}</div>
+                
+                <div class="input-group" style="background:transparent; padding:0; border:none;">
+                    <label>Image URL</label>
+                    <input type="text" class="e-param" name="e${i}" placeholder="e${i}.png">
+                </div>
+
+                <div class="input-group" style="background:transparent; padding:0; border:none;">
+                    <label>Emote URL</label>
+                    <input type="text" class="e-param" name="e${i}_emote" placeholder="emote.png">
+                </div>
+
+                <div class="row">
+                    <div class="input-group" style="padding: 5px; flex: 1;">
+                        <label>X Pos</label>
+                        <input type="text" class="e-param" name="e${i}_ex" placeholder="0.5">
+                    </div>
+                    <div class="input-group" style="padding: 5px; flex: 1;">
+                        <label>Y Pos</label>
+                        <input type="text" class="e-param" name="e${i}_ey" placeholder="0.5">
+                    </div>
+                </div>
+            `;
+            enemyContainer.appendChild(card);
+        }
+
+        function generateURL() {
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            if (!baseUrl) {
+                alert("Please enter a Base URL first!");
+                return;
+            }
+
+            const params = new URLSearchParams();
+
+            // 1. Get Player Params
+            const playerInputs = document.querySelectorAll('.p-param');
+            playerInputs.forEach(input => {
+                if (input.value.trim() !== "") {
+                    params.append(input.name, input.value.trim());
+                }
+            });
+
+            // 2. Get Enemy Params
+            const enemyInputs = document.querySelectorAll('.e-param');
+            enemyInputs.forEach(input => {
+                if (input.value.trim() !== "") {
+                    params.append(input.name, input.value.trim());
+                }
+            });
+
+            // 3. Combine
+            const queryString = params.toString();
+            const finalUrl = baseUrl + (queryString ? "?" + queryString : "");
+            
+            document.getElementById('generatedUrl').value = finalUrl;
+        }
+
+        function copyUrl() {
+            const copyText = document.getElementById("generatedUrl");
+            if (!copyText.value) return;
+            
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(copyText.value);
+            
+            alert("URL Copied to Clipboard!");
+        }
+    </script>
+</body>
+</html>
