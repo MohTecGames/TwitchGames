@@ -12,9 +12,9 @@ customized through URL parameter injection.
 ------------------------------------------------------------------------------
 Instead of manually typing long URLs, use the provided URL Maker tool:
 
-URL Maker: SpaceV4URLMaker.HTML
-(e.g., generator.html)
-
+URL Maker: 
+https://mohtecgames.github.io/TwitchGames/Shooter/SpaceV4URLMaker.HTML
+ 
 -----------------------------------------------------------------------------
 [ PLAYER GUIDE - TWITCH CHAT ]
 -------------------------------------------------------------------------------
