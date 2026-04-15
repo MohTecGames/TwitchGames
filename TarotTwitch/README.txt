@@ -1,6 +1,6 @@
 ===========================================================
 ===           TWITCH MYSTICAL TAROT (ULTIMATE)          ===
-==========================================================
+===========================================================
 
 [ VIEWER GUIDE (Twitch Chat) ]
 Type these commands to receive a mystical reading:
