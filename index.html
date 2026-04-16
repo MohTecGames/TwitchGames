@@ -1,3 +1,22 @@
+ <!  
+ /* 
+ * =========================================================================
+ * COPYRIGHT & ATTRIBUTION NOTICE
+ * =========================================================================
+ * CREATED BY: MohTecGames
+ * 
+ * NOTICE: This work is protected. Any reproduction, distribution, or use 
+ * of this code, its logic, or its assets requires prior written approval 
+ * from MohTecGames.
+ * 
+ * TECHNICAL CREDITS:
+ * This project utilizes Comfy.JS for Twitch chat integration.
+ * Created by Instafluff.
+ * Library: https://github.com/instafluff/comfy.js
+ * =========================================================================
+ */
+--> 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,9 +26,10 @@
     <style>
         :root {
             --sun-color: #ffdb3a;
-            --sky-top: #3a8cd6; /* Slightly deeper blue for better contrast */
+            --sky-top: #3a8cd6;
             --sky-bottom: #00a8cc;
-            --card-bg: rgba(0, 0, 0, 0.5); /* Darker glass for text readability */
+            --card-bg: rgba(0, 0, 0, 0.4);
+            --config-bg: rgba(255, 255, 255, 0.15);
             --text-color: #ffffff;
         }
 
@@ -45,12 +65,8 @@
             animation: drift linear infinite;
         }
 
-        .cloud-1 { width: 200px; height: 60px; top: 15%; left: -250px; animation-duration: 60s; }
-        .cloud-2 { width: 150px; height: 50px; top: 40%; left: -200px; animation-duration: 45s; animation-delay: 10s; }
-        .cloud-3 { width: 250px; height: 80px; top: 10%; left: -300px; animation-duration: 80s; animation-delay: 20s; }
-
         @keyframes drift {
-            from { transform: translateX(-10vw); }
+            from { transform: translateX(-20vw); }
             to { transform: translateX(110vw); }
         }
 
@@ -68,9 +84,8 @@
 
         h1 {
             color: white;
-            font-size: 4rem;
+            font-size: 3.5rem;
             margin-bottom: 5px;
-            /* Strong shadow to make title pop against sky */
             text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             letter-spacing: -1px;
         }
@@ -80,27 +95,35 @@
             font-size: 1.4rem;
             margin-bottom: 50px;
             font-weight: 500;
-            /* Shadow for subtitle */
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
         }
 
-        /* --- GAME GRID --- */
-        .game-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            width: 100%;
-            max-width: 1200px;
+        /* --- SECTION TITLES --- */
+        .section-label {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin: 40px 0 20px 0;
+            font-weight: bold;
         }
 
-        /* --- GAME CARDS (The "Buttons") --- */
+        /* --- GAME GRID (Main Cards) --- */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
         .game-card {
             background: var(--card-bg);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 40px 25px;
+            border-radius: 20px;
+            padding: 25px 15px;
             text-align: center;
             color: white;
             text-decoration: none;
@@ -109,7 +132,6 @@
             flex-direction: column;
             align-items: center;
             cursor: pointer;
-            /* Shadow to lift card from background */
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
@@ -121,83 +143,139 @@
         }
 
         .game-icon {
-            font-size: 60px;
-            margin-bottom: 20px;
+            font-size: 50px;
+            margin-bottom: 15px;
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
         }
 
         .game-title {
-            font-size: 1.8rem;
+            font-size: 1.4rem;
             font-weight: 800;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             color: #ffffff;
-            /* Heavy shadow for title clarity */
             text-shadow: 0 3px 6px rgba(0, 0, 0, 0.8);
         }
 
         .game-desc {
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 400;
-            line-height: 1.5;
+            line-height: 1.4;
             color: #f0f0f0;
-            /* Shadow for description clarity */
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        /* --- CONFIGURATION SECTION --- */
+        .config-container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--config-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-around;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .config-link {
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: bold;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .config-link:hover {
+            background: white;
+            color: var(--sky-top);
         }
 
         /* Mobile Responsive */
         @media (max-width: 600px) {
             h1 { font-size: 2.5rem; }
             .game-grid { grid-template-columns: 1fr; }
+            .config-container { flex-direction: column; align-items: center; gap: 10px; }
         }
     </style>
 </head>
-<body>
+<body id="body">
 
     <!-- Background Elements -->
-    <div class="sun"></div>
-    <div class="cloud cloud-1"></div>
-    <div class="cloud cloud-2"></div>
-    <div class="cloud cloud-3"></div>
+    <div id="bg-elements">
+        <div class="sun"></div>
+    </div>
 
     <div class="container">
-        <h1>MohTecGames</h1>
+        <h1 id="main-title">MohTecGames</h1>
         <p class="subtitle">Select a world to enter</p>
 
+        <div class="section-label">Main Worlds</div>
         <div class="game-grid">
             
             <!-- GAME 1 -->
             <a href="Flappy/FlappyV2.1.HTML" class="game-card">
                 <div class="game-icon">🐦</div>
-                <div class="game-title">FalppyClone</div>
+                <div class="game-title">FlappyClone</div>
                 <div class="game-desc">A high-speed physics challenge. Don't hit the obstacles!</div>
             </a>
 
             <!-- GAME 2 -->
             <a href="Shooter/SpaceV4.HTML" class="game-card">
                 <div class="game-icon">🚀</div>
-                <div class="game-title">Interactive Twitch Shooter</div>
+                <div class="game-title">Twitch Shooter</div>
                 <div class="game-desc">Navigate the cosmos and blast enemies in this chat-driven space combat adventure!</div>
             </a>
 
             <!-- GAME 3 -->
             <a href="TarotTwitch/TarotV1.6-StandAlone.HTML" class="game-card">
                 <div class="game-icon">🔮</div>
-                <div class="game-title">Tarot Game (Local)</div>
+                <div class="game-title">Tarot (Solo)</div>
                 <div class="game-desc">A peaceful, mystical reading experience for solo players.</div>
             </a>
 
             <!-- GAME 4 -->
             <a href="TarotTwitch/TarotV1.6.HTML" class="game-card">
                 <div class="game-icon">✨</div>
-                <div class="game-title">Tarot (Twitch Interactive)</div>
+                <div class="game-title">Tarot (Twitch)</div>
                 <div class="game-desc">Let the Universe and your community speak through the cards.</div>
             </a>
 
         </div>
+
+        <div class="section-label">Games System Configuration</div>
+        <div class="config-container">
+            <a href="SpaceV4URLMaker.HTML" class="config-link">⚙️ Twitch Shooter Config</a>
+            <a href="TarotV1.6URLMaker.HTML" class="config-link">⚙️ Tarot (Twitch) Config</a>
+        </div>
     </div>
 
     <script>
-        // Subtle Tilt Effect
+        // --- CLOUD GENERATOR ---
+        const bgElements = document.getElementById('bg-elements');
+
+        function spawnClouds(count) {
+            for (let i = 0; i < count; i++) {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud';
+                const width = Math.random() * 150 + 100;
+                const height = width / 3;
+                cloud.style.width = `${width}px`;
+                cloud.style.height = `${height}px`;
+                cloud.style.top = `${Math.random() * 60}%`;
+                cloud.style.left = `-250px`;
+                cloud.style.animationDuration = `${Math.random() * 30 + 40}s`;
+                cloud.style.animationDelay = `${Math.random() * 50}s`;
+                cloud.style.opacity = Math.random() * 0.3 + 0.1;
+                bgElements.appendChild(cloud);
+            }
+        }
+
+        spawnClouds(20); // Higher frequency
+
+        // --- TILT EFFECT ---
         const cards = document.querySelectorAll('.game-card');
 
         cards.forEach(card => {
@@ -209,8 +287,8 @@
                 const centerX = rect.width / 2;
                 const centerY = rect.height / 2;
 
-                const rotateX = (y - centerY) / 15;
-                const rotateY = (centerX - x) / 15;
+                const rotateX = (y - centerY) / 20;
+                const rotateY = (centerX - x) / 20;
 
                 card.style.transform = `perspective(1000px) translateY(-10px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
             });
