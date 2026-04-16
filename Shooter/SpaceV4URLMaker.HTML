@@ -8,13 +8,7 @@
  * NOTICE: This work is protected. Any reproduction, distribution, or use 
  * of this code, its logic, or its assets requires prior written approval 
  * from MohTecGames.
- * 
- * -------------------------------------------------------------------------
- * CONTENT CREDITS:
- * Tarot interpretations and meanings are inspired by and credited to:
- * "The Big Book of Tarot Meanings: The Beginner's Guide to Reading the Cards"
- * (Paperback – 15 Mar. 2022) by Sam Magdaleno (Author).
- * 
+ *  
  * -------------------------------------------------------------------------
  * TECHNICAL CREDITS:
  * This project utilizes Comfy.JS for Twitch chat integration.
@@ -237,7 +231,24 @@
         <div class="enemy-grid" id="enemyContainer">
             <!-- JS will inject 5 enemy cards here -->
         </div>
+<!-- ADD THIS SECTION INTO THE CONTAINER IN generator.html -->
 
+<div class="section-title">Step 4: Global Game Settings</div>
+<div class="grid">
+    <div class="input-group">
+        <label>Enemy Speed Multiplier</label>
+        <input type="text" class="p-param" name="espeed" placeholder="1.0 (Default)">
+    </div>
+    <div class="input-group">
+        <label>Burst Count (Bullets per click)</label>
+        <input type="text" class="p-param" name="burst" placeholder="3 (Default)">
+    </div>
+    <div class="input-group">
+        <label>Spawn Interval (Frames)</label>
+        <input type="text" class="p-param" name="spawn" placeholder="60 (Default)">
+        <small style="font-size: 0.7rem; color: #666;">Lower = More Enemies</small>
+    </div>
+</div>
     </div>
 
     <!-- RESULT AREA -->
