@@ -1,11 +1,11 @@
 # MohTecGames Interactive Suite
 
 A collection of high-performance, web-based interactive experiences. This suite includes a classic arcade game for local play and two specialized interactive applications designed specifically for **Twitch Streamers** to engage their live audiences via chat integration.
-https://mohtecgames.github.io/TwitchGames/
+
 ---
 
 ## 🎮 Games Overview
-
+https://mohtecgames.github.io/TwitchGames/
 ### 1. Flappy Bird Fullscreen Pro
 A polished, responsive, and fullscreen implementation of the classic arcade sensation. This version is optimized for both desktop and mobile browsers, featuring smooth physics and a parallax-style background.
 
