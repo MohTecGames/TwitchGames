@@ -13,6 +13,13 @@ tarotfriendsfamily         -> Focus on social connections
 tarothealth                -> Focus on wellness/vitality
 tarothigherguidance        -> Focus on spiritual direction
 
+ 
+[ EASY CONFIGURATION ]
+Instead of manually typing long URLs, use the provided URL Maker tool:
+
+URL Maker: 
+https://mohtecgames.github.io/TwitchGames/TarotTwitch/TarotV1.6 URLMaker.HTML
+ 
 [ STREAMER GUIDE (Manual Controls) ]
 Use the on-screen buttons for testing and management:
 TEST READING               -> Manually triggers a reading (for testing)
