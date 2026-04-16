@@ -18,7 +18,7 @@ tarothigherguidance        -> Focus on spiritual direction
 Instead of manually typing long URLs, use the provided URL Maker tool:
 
 URL Maker: 
-https://mohtecgames.github.io/TwitchGames/TarotTwitch/TarotV1.6 URLMaker.HTML
+https://mohtecgames.github.io/TwitchGames/TarotTwitch/TarotV1.6URLMaker.HTML
  
 [ STREAMER GUIDE (Manual Controls) ]
 Use the on-screen buttons for testing and management:
