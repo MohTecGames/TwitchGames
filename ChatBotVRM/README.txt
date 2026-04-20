@@ -20,6 +20,7 @@ integration.
 [ DEBUGGING & TESTING ]
 ---------------------------------------------------------------------------
 ANIMATION TEST BENCH (test_animations.html)
+https://mohtecgames.github.io/TwitchGames/ChatBotVRM/Ai-TestAnimV1.htm
 If your avatar is not animating correctly, use the Test Bench script. 
 It will automatically cycle through every animation in your list to 
 verify that all .vrma files are loading and playing without errors.
