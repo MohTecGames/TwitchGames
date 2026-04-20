@@ -14,13 +14,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VRM AI Chatbot - OBS Transparent Edition</title>
+    <title>VRM AI Chatbot - Pro Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js"></script>
     <style>
-        /* 1. SET BODY TO TRANSPARENT FOR OBS */
-        body { margin: 0; padding: 0; overflow: hidden; background-color: transparent; font-family: sans-serif; }
-        canvas { display: block; width: 100vw; height: 100vh; background: transparent; }
+        /* --- OBS TRANSPARENCY SETUP --- */
+        body { 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden; 
+            background-color: transparent; /* Required for OBS */
+            font-family: sans-serif; 
+        }
+        canvas { 
+            display: block; 
+            width: 100vw; 
+            height: 100vh; 
+            background: transparent; /* Required for OBS */
+        }
 
+        /* --- SPEECH BUBBLE --- */
         #speech-bubble {
             position: fixed;
             bottom: 150px;
@@ -48,6 +60,7 @@
             border-style: solid; border-color: white transparent transparent;
         }
 
+        /* --- HUD & STATUS --- */
         #debug-hud {
             position: fixed;
             top: 10px;
@@ -62,7 +75,15 @@
             pointer-events: none;
         }
 
-        #status { position: fixed; bottom: 10px; left: 10px; color: white; font-size: 12px; opacity: 0.5; z-index: 1001; }
+        #status { 
+            position: fixed; 
+            bottom: 10px; 
+            left: 10px; 
+            color: white; 
+            font-size: 12px; 
+            opacity: 0.5; 
+            z-index: 1001; 
+        }
     </style>
 </head>
 <body>
@@ -101,15 +122,14 @@
 
         const MODEL = urlParams.get('model') || "llama3.2:3b-Q3_K_M";
         const CONTEXT_SIZE = parseInt(urlParams.get('ctx')) || 12000;
+        
+        // --- SIMPLIFIED MODE LOGIC ---
         const API_TYPE = urlParams.get('api_type') || "google"; 
+        const GOOGLE_KEY = urlParams.get('key'); // Used if ?api_type=google&key=...
+        const REMOTE_IP = urlParams.get('url');  // Used if ?api_type=remote&url=192.168.1.5:11434
 
-        const GOOGLE_KEY = "AIzaSyAp7GCFBRtZj1UR0eTkZpYet1KpGrgyQlA";
         const GOOGLE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
-
-        const OLLAMA_URL = urlParams.get('url') || "http://localhost:11434/api/chat";
-        const SERVER_URL = urlParams.get('server_url');
-        const ONLINE_URL = urlParams.get('online_url');
-        const ONLINE_KEY = urlParams.get('online_key');
+        const LOCAL_URL = "http://localhost:11434/api/chat";
 
         const VRM_MODEL_URL = './VRM/sample.vrm';
         
@@ -143,14 +163,13 @@
 
         // ========== ENGINE SETUP ==========
         const scene = new THREE.Scene();
-        // 2. SET SCENE BACKGROUND TO NULL FOR TRANSPARENCY
-        scene.background = null; 
+        scene.background = null; // Required for transparency
 
-        // 3. ZOOM OUT: Changed Z position from 4 to 5.5
+        // ZOOM OUT: Set Z to 5.5
         const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 20);
         camera.position.set(0, 1.3, 5.5); 
 
-        // 4. ENABLE ALPHA: Added { alpha: true } to renderer
+        // ALPHA: Enable alpha: true for transparency
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -200,32 +219,48 @@
             bubble.textContent = "Thinking...";
             bubble.classList.add('show');
 
-            // REINFORCEMENT LOGIC
+            // REINFORCEMENT: Force the instruction into the user message
             const reinforcedPrompt = `Please keep the answer under 40 words. ${prompt}`;
 
             try {
                 let finalContent = "";
+                let targetUrl = "";
+                let isOllamaStyle = false;
 
+                // --- MODE SELECTION ---
                 if (API_TYPE === 'google') {
-                    const response = await fetch(`${GOOGLE_URL}?key=${GOOGLE_KEY}`, {
+                    if (!GOOGLE_KEY) throw new Error("Google Mode: Missing ?key= in URL");
+                    targetUrl = `${GOOGLE_URL}?key=${GOOGLE_KEY}`;
+                } 
+                else if (API_TYPE === 'local') {
+                    targetUrl = LOCAL_URL;
+                    isOllamaStyle = true;
+                } 
+                else if (API_TYPE === 'remote') {
+                    if (!REMOTE_IP) throw new Error("Remote Mode: Missing ?url=IP:PORT in URL");
+                    // Automatically appends /api/chat to the IP provided
+                    targetUrl = `http://${REMOTE_IP}/api/chat`;
+                    isOllamaStyle = true;
+                } else {
+                    throw new Error("Invalid API Type");
+                }
+
+                // --- EXECUTION ---
+                if (!isOllamaStyle) {
+                    // GOOGLE LOGIC
+                    const response = await fetch(targetUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            contents: [{ 
-                                parts: [{ text: SYSTEM_PROMPT + "\n\nUser: " + reinforcedPrompt }] 
-                            }] 
-                        })
+                        body: JSON.stringify({ contents: [{ parts: [{ text: SYSTEM_PROMPT + "\n\nUser: " + reinforcedPrompt }] }] })
                     });
 
                     const data = await response.json();
                     if (!response.ok) throw new Error(data.error?.message || `HTTP Error ${response.status}`);
-                    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) throw new Error("AI empty response");
+                    if (!data.candidates || !data.candidates[0]) throw new Error("AI returned empty response");
                     finalContent = data.candidates[0].content.parts[0].text;
 
-                } else if (API_TYPE === 'local' || API_TYPE === 'server') {
-                    const targetUrl = (API_TYPE === 'server') ? SERVER_URL : OLLAMA_URL;
-                    if (!targetUrl) throw new Error("Missing URL.");
-
+                } else {
+                    // OLLAMA (LOCAL OR REMOTE) LOGIC
                     const response = await fetch(targetUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -238,6 +273,7 @@
                     });
 
                     if (!response.ok) throw new Error(`Server Error: ${response.statusText}`);
+
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
                     while (true) {
@@ -253,17 +289,6 @@
                             } catch (e) {}
                         }
                     }
-
-                } else if (API_TYPE === 'online') {
-                    if (!ONLINE_URL || !ONLINE_KEY) throw new Error("Missing Online URL or Key.");
-                    const response = await fetch(ONLINE_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ONLINE_KEY}` },
-                        body: JSON.stringify({ model: MODEL, messages: [{ role: 'user', content: reinforcedPrompt }] })
-                    });
-                    if (!response.ok) throw new Error(`Online API Error: ${response.statusText}`);
-                    const data = await response.json();
-                    finalContent = data.choices[0].message.content;
                 }
 
                 typeWriter(finalContent.replace(/[*#_~`]/g, ''));
@@ -300,6 +325,7 @@
         // ========== INITIALIZATION ==========
 
         async function init() {
+            // 1. Load VRM
             await new Promise((resolve) => {
                 loader.load(VRM_MODEL_URL, (gltf) => {
                     currentVrm = gltf.userData.vrm;
@@ -311,6 +337,7 @@
                 });
             });
 
+            // 2. Preload Animations
             const status = document.getElementById('status');
             const keys = Object.keys(ANIM_MAP);
             for (let i = 0; i < keys.length; i++) {
@@ -371,3 +398,4 @@
     </script>
 </body>
 </html>
+
