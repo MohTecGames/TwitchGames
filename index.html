@@ -1,5 +1,4 @@
- <!  
- /* 
+<!-- 
  * =========================================================================
  * COPYRIGHT & ATTRIBUTION NOTICE
  * =========================================================================
@@ -114,7 +113,7 @@
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 20px;
             width: 100%;
-            max-width: 1000px;
+            max-width: 1200px; /* Increased slightly for 5 cards */
         }
 
         .game-card {
@@ -167,13 +166,15 @@
         /* --- CONFIGURATION SECTION --- */
         .config-container {
             width: 100%;
-            max-width: 600px;
+            max-width: 800px; /* Increased to fit 3 links comfortably */
             background: var(--config-bg);
             backdrop-filter: blur(15px);
             border-radius: 15px;
             padding: 20px;
             display: flex;
-            justify-content: space-around;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
@@ -186,6 +187,7 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             transition: 0.3s;
+            white-space: nowrap;
         }
 
         .config-link:hover {
@@ -243,12 +245,20 @@
                 <div class="game-desc">Let the Universe and your community speak through the cards.</div>
             </a>
 
+            <!-- GAME 5: AI AVATAR (NEW) -->
+            <a href="ChatBotVRM/Ai-Chat-VRMV1.2.htm?api_type=local" class="game-card">
+                <div class="game-icon">🤖</div>
+                <div class="game-title">AI Avatar</div>
+                <div class="game-desc">An interactive 3D companion that talks to your Twitch chat!</div>
+            </a>
+
         </div>
 
         <div class="section-label">Games System Configuration</div>
         <div class="config-container">
             <a href="Shooter/SpaceV4URLMaker.HTML" class="config-link">⚙️ Twitch Shooter Config</a>
             <a href="TarotTwitch/TarotV1.6URLMaker.HTML" class="config-link">⚙️ Tarot (Twitch) Config</a>
+            <a href="ChatBotVRM/Ai-configV1.htm" class="config-link">⚙️ AI Avatar Config</a>
         </div>
     </div>
 
@@ -273,7 +283,7 @@
             }
         }
 
-        spawnClouds(20); // Higher frequency
+        spawnClouds(20); 
 
         // --- TILT EFFECT ---
         const cards = document.querySelectorAll('.game-card');
