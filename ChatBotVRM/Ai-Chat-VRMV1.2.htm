@@ -14,7 +14,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VRM AI Chatbot - Online</title>
+    <title>VRM AI Chatbot - Online - V2.1</title>
     <script src="https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js"></script>
     <style>
         body { margin: 0; padding: 0; overflow: hidden; background-color: transparent; font-family: sans-serif; }
@@ -142,6 +142,7 @@
         const statusEl = document.getElementById('status');
         hudMode.textContent = API_TYPE.toUpperCase();
 
+        // REGISTER PLUGINS IMMEDIATELY (Crucial for avatarmove to work anytime)
         const loader = new GLTFLoader();
         loader.register((p) => new VRMLoaderPlugin(p));
         loader.register((p) => new VRMAnimationLoaderPlugin(p));
@@ -190,9 +191,8 @@
         }
 
         async function playAnimation(name) {
-            if (!currentVrm || !loadedClips.has(name)) return;
+            if (!currentVrm || !currentMixer || !loadedClips.has(name)) return;
 
-            // If the AI is actively talking or thinking, don't let a random idle animation change the state
             const isBusy = (currentState === STATE.THINKING || currentState === STATE.TALKING || currentState === STATE.PROACTIVE);
             if (!isBusy) {
                 setState(STATE.ANIMATING);
@@ -209,7 +209,6 @@
             const durationMs = animData ? animData.duration * 1000 : (clip.duration * 1000);
 
             setTimeout(() => {
-                // Only set to IDLE if we weren't interrupted by the AI
                 if (currentState === STATE.ANIMATING) {
                     setState(STATE.IDLE);
                 }
@@ -217,21 +216,47 @@
         }
 
         async function playOneOffAnimation(fileName) {
-            if (!currentVrm) return;
+            if (!currentVrm || !currentMixer) {
+                console.error("Cannot play animation: VRM or Mixer not loaded.");
+                return;
+            }
+
             const url = ASSET_ROOT + 'VRMA/' + fileName;
+            console.log("Attempting to load one-off animation:", url);
+
             try {
-                const gltf = await new Promise((resolve, reject) => { loader.load(url, resolve, undefined, reject); });
+                const gltf = await new Promise((resolve, reject) => { 
+                    loader.load(url, resolve, undefined, (err) => reject(new Error(`Failed to load file: ${url}`))); 
+                });
+
+                // Check if the file actually contains VRMA data
+                if (!gltf.userData.vrmAnimations || gltf.userData.vrmAnimations.length === 0) {
+                    throw new Error("File loaded but contains no VRMA animation data.");
+                }
+
                 const clip = createVRMAnimationClip(gltf.userData.vrmAnimations[0], currentVrm);
                 const action = currentMixer.clipAction(clip);
+                
                 setState(STATE.MOVING); 
                 action.reset().setEffectiveWeight(1).fadeIn(0.5).play();
+                
                 if (currentAction) currentAction.fadeOut(0.5);
                 currentAction = action;
-                hudAnim.textContent = fileName.split('.')[0];
+                
                 const key = fileName.split('.')[0];
+                hudAnim.textContent = key;
+                
                 const duration = (dynamicAnimMap[key]?.duration || clip.duration || 5) * 1000;
-                setTimeout(() => { if (currentState === STATE.MOVING) setState(STATE.IDLE); }, duration);
-            } catch (err) { console.warn("One-off animation failed:", fileName); }
+                
+                setTimeout(() => { 
+                    if (currentState === STATE.MOVING) setState(STATE.IDLE); 
+                }, duration);
+
+            } catch (err) { 
+                console.error("One-off animation error:", err.message);
+                hudAnim.textContent = "ERR: " + fileName.split('.')[0];
+                setTimeout(() => { hudAnim.textContent = "NONE"; }, 3000);
+            }
         }
 
         async function preloadAnimations() {
@@ -243,12 +268,19 @@
                     const animUrl = ASSET_ROOT + 'VRMA/' + animFile;
                     await new Promise((res, rej) => {
                         loader.load(animUrl, (gltf) => {
-                            const clip = createVRMAnimationClip(gltf.userData.vrmAnimations[0], currentVrm);
-                            loadedClips.set(name, clip);
-                            res();
+                            if (gltf.userData.vrmAnimations && gltf.userData.vrmAnimations.length > 0) {
+                                const clip = createVRMAnimationClip(gltf.userData.vrmAnimations[0], currentVrm);
+                                loadedClips.set(name, clip);
+                                res();
+                            } else {
+                                rej(new Error("No VRMA data in " + animFile));
+                            }
                         }, undefined, rej);
                     });
-                } catch (e) { failedAnims.add(name); }
+                } catch (e) { 
+                    console.warn(`Failed to preload ${name}:`, e.message);
+                    failedAnims.add(name); 
+                }
             }
         }
 
@@ -287,10 +319,7 @@
         }
 
         async function askAI(prompt, isProactive = false) {
-            if (Date.now() < cooldownUntil) {
-                console.log("Bot is in cooldown. Ignoring request.");
-                return;
-            }
+            if (Date.now() < cooldownUntil) return;
 
             lastProactiveTriggerTime = Date.now();
             cooldownUntil = Date.now() + GLOBAL_COOLDOWN;
@@ -354,7 +383,7 @@
                             if (!line.trim()) continue;
                             try {
                                 const json = JSON.parse(line);
-                                if (json.message && json.message.content) finalContent += json.message.content;
+                               if (json.message && json.message.content) finalContent += json.message.content;
                             } catch (e) {}
                         }
                     }
@@ -407,20 +436,16 @@
             setInterval(() => {
                 const now = Date.now();
 
-                // 1. Idle Animations: Only if we are truly IDLE
+                // 1. Idle Animations
                 if (currentState === STATE.IDLE && keys.length > 0) {
                     const rand = keys[Math.floor(Math.random() * keys.length)];
                     playAnimation(rand);
                 }
 
                 // 2. PROACTIVE FORCE TRIGGER
-                // REWORKED: We check if the bot is NOT busy with an AI task.
-                // If it's just doing an IDLE animation, we let it interrupt!
                 const isBusyWithAI = (currentState === STATE.THINKING || currentState === STATE.TALKING || currentState === STATE.MOVING);
-                
                 if (!isBusyWithAI && (now - lastProactiveTriggerTime > PROACTIVE_FORCE_INTERVAL)) {
                     if (proactivePrompts.length > 0) {
-                        console.log(">>> TIMER REACHED: Triggering Proactive Prompt...");
                         const prompt = proactivePrompts[currentPromptIndex];
                         currentPromptIndex = (currentPromptIndex + 1) % proactivePrompts.length;
                         askAI(prompt, true);
