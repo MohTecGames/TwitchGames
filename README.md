@@ -1,6 +1,3 @@
- 
-
-***
 
 # MohTecGames Interactive Suite
 
