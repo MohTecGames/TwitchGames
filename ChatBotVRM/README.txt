@@ -8,6 +8,11 @@ listens to chat, thinks using AI, and responds with animated speech
 bubbles. Features an advanced priority-based state system to ensure 
 proactive conversation and a dedicated Developer Test Tool for easy 
 asset management. Designed for seamless OBS integration.
+--------------------------------------------------------------------------
+[ FILE NAME NOTE ]
+---------------------------------------------------------------------------
+File names are case-sensitive for example if you type "AvtarMove sad" it 
+will not work, use instead "AvtarMove Sad"  
 
 --------------------------------------------------------------------------
 [ QUICK START ]
