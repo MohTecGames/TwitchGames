@@ -1,12 +1,13 @@
-=========================================================================
+ =========================================================================
                    VRM AI CHATBOT (OBS TRANSPARENT EDITION)
 ==========================================================================
 
 [ DESCRIPTION ]
 An interactive, 3D VRM avatar designed for Twitch streamers. The avatar 
 listens to chat, thinks using AI, and responds with animated speech 
-bubbles. Designed with a transparent background for seamless OBS 
-integration.
+bubbles. Features an advanced priority-based state system to ensure 
+proactive conversation and a dedicated Developer Test Tool for easy 
+asset management. Designed for seamless OBS integration.
 
 --------------------------------------------------------------------------
 [ QUICK START ]
@@ -19,11 +20,14 @@ integration.
 --------------------------------------------------------------------------
 [ DEBUGGING & TESTING ]
 ---------------------------------------------------------------------------
-ANIMATION TEST BENCH (test_animations.html)
+DEVELOPER TEST TOOL (test_animations.html)
 https://mohtecgames.github.io/TwitchGames/ChatBotVRM/Ai-TestAnimV1.htm
-If your avatar is not animating correctly, use the Test Bench script. 
-It will automatically cycle through every animation in your list to 
-verify that all .vrma files are loading and playing without errors.
+
+The Test Tool is highly recommended for setup. It includes:
+- ANIMATION DROPDOWN: Automatically loads all animations from your vrma.ini.
+- DURATION READOUT: Instantly shows the duration (in seconds) defined in .ini.
+- AVATAR LOADER: Type a filename to test different models instantly.
+- STATE MONITOR: Watch the HUD to see if the bot is IDLE, THINKING, or TALKING.
 
 --------------------------------------------------------------------------
 [ CHAT GUIDE - VIEWERS ]
@@ -36,8 +40,7 @@ you must type "Luna, tell me a joke!")
 --------------------------------------------------------------------------
 [ ADMIN SETUP: URL INJECTION ]
 --------------------------------------------------------------------------
-All settings are controlled via URL parameters to allow for instant 
-reconfiguration without touching the code.
+All settings are controlled via URL parameters for instant reconfiguration.
 
 [ 1. IDENTITY & TWITCH ]
 -------------------------------------------------------------------------
@@ -46,27 +49,36 @@ reconfiguration without touching the code.
 
 [ 2. AI ENGINE SETTINGS ]
 -------------------------------------------------------------------------
-?api_type=TYPE -> Select engine: 'google' (Default), 'local', 'server', 'online'
-?model=NAME    -> The specific AI model to use (e.g., llama3.2:3b).
+?api_type=TYPE -> Select engine: 'google' (Default), 'local', 'remote'
+?model=NAME    -> The specific AI model ID (e.g., gemma3n:e2b).
 ?ctx=12000     -> The context window size (memory) for the AI.
 
 [ 3. CONNECTION SETTINGS ]
 -------------------------------------------------------------------------
-?url=URL       -> (Local Mode) The endpoint for your Ollama API.
-?server_url=U  -> (Server Mode) Your custom backend API URL.
-?online_url=U  -> (Online Mode) Your external API endpoint.
-?online_key=K  -> (Online Mode) Your API Bearer Token/Key.
+?url=URL       -> (Local/Remote) The endpoint for your API (e.g., 192.168.1.5:11434).
+?key=YOUR_KEY  -> (Google Mode) Your Gemini API Key.
 
 --------------------------------------------------------------------------
 [ IMPORTANT NOTES ]
 --------------------------------------------------------------------------
+* MIXED CONTENT WARNING (CRITICAL): If you host this on GitHub Pages 
+  (HTTPS), your remote API URL MUST also use HTTPS. Browsers will 
+  BLOCK any connection from an HTTPS site to an HTTP address. 
+  (Exception: 'localhost' or '127.0.0.1' is always allowed).
+
+* PRIORITY STATE LOGIC: The bot uses a priority system. Proactive 
+  conversations (the 40-second timer) will now correctly interrupt 
+  idle animations, ensuring the bot doesn't "dance through" its 
+  scheduled speaking time.
+
+* ERROR RESILIENCE: The bot is designed to not "lock up" on network 
+  failures. If a connection attempt fails (e.g., a timeout), the 
+  cooldown is bypassed so the bot can attempt to reconnect immediately.
+
 * OBS TRANSPARENCY: Ensure "Allow Transparency" is ENABLED in the OBS 
-  Browser Source properties, or the background will appear black.
-* AI LIMITS: The system is hardcoded to force the AI to keep replies 
-  under 40 words to ensure fast, readable chat interaction.
+  Browser Source properties.
+
 * ASSET PATHS: Ensure your folders are named exactly /VRM/ and /VRMA/ 
   relative to the HTML file.
-* GOOGLE API: To use the default Google mode, you must insert your 
-  Gemini API key directly into the script's GOOGLE_KEY variable.
 
 ==========================================================================
