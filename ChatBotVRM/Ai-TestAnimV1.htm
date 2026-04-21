@@ -1,7 +1,7 @@
 <!-- 
  * =========================================================================
  * COPYRIGHT & ATTRIBUTION NOTICE
- * =========================================================================
+ * =============================================================================
  * CREATED BY: MohTecGames
  * 
  * NOTICE: This work is protected. Any reproduction, distribution, or use 
@@ -14,64 +14,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VRM Animation Test Bench - Final List</title>
+    <title>VRM AI Chatbot - Pro Edition</title>
+    <script src="https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js"></script>
     <style>
-        body { margin: 0; padding: 0; overflow: hidden; background-color: #111; font-family: sans-serif; }
-        canvas { display: block; width: 100vw; height: 100vh; }
-
-        #ui-overlay {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            z-index: 100;
-            border: 1px solid #444;
-            min-width: 300px;
+        body { margin: 0; padding: 0; overflow: hidden; background-color: transparent; font-family: sans-serif; }
+        canvas { display: block; width: 100vw; height: 100vh; background: transparent; }
+        #speech-bubble {
+            position: fixed; bottom: 150px; left: 50%; transform: translateX(-50%) scale(0.8);
+            background: white; border-radius: 25px; padding: 15px 30px; font-size: 1.2rem;
+            color: #333; min-width: 300px; max-width: 80vw; text-align: center;
+            opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3); z-index: 1000; pointer-events: none; white-space: pre-wrap;
         }
-
-        .status-item { margin-bottom: 10px; font-size: 14px; }
-        .label { color: #888; }
-        .value { color: #00ff00; font-weight: bold; font-family: monospace; }
-        .error { color: #ff4444; }
-
-        #controls { margin-top: 20px; }
-        button {
-            padding: 10px 20px;
-            cursor: pointer;
-            background: #444;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-weight: bold;
+        #speech-bubble.show { opacity: 1; transform: translateX(-50%) scale(1); }
+        #speech-bubble::after {
+            content: ''; position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%);
+            border-width: 15px 15px 0; border-style: solid; border-color: white transparent transparent;
         }
-        button:hover { background: #666; }
-        button:disabled { opacity: 0.3; cursor: not-allowed; }
-        #startBtn { background: #2e7d32; }
-        #startBtn:hover { background: #388e3c; }
+        #debug-hud {
+            position: fixed; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.7);
+            color: #00ff00; padding: 10px; border-radius: 5px; font-family: monospace;
+            font-size: 11px; z-index: 2000; pointer-events: none;
+        }
+        #status { position: fixed; bottom: 10px; left: 10px; color: white; font-size: 12px; opacity: 0.5; z-index: 1001; }
     </style>
 </head>
 <body>
 
-    <div id="ui-overlay">
-        <div class="status-item">
-            <span class="label">Progress:</span> 
-            <span id="progress" class="value">0 / 0</span>
-        </div>
-        <div class="status-item">
-            <span class="label">Current:</span> 
-            <span id="current-anim" class="value">None</span>
-        </div>
-        <div class="status-item">
-            <span class="label">Status:</span> 
-            <span id="status-text" class="value">Waiting...</span>
-        </div>
-        <div id="controls">
-            <button id="startBtn" disabled>Start Test Sequence</button>
-        </div>
+    <div id="debug-hud">
+        <div>MODE: <span id="hud-mode">DETECTING...</span></div>
+        <div>ANIM: <span id="hud-anim">NONE</span></div>
+        <div>STATE: <span id="hud-state">IDLE</span></div>
     </div>
+
+    <div id="status">Initializing Engine...</div>
+    <div id="speech-bubble">Hello!</div>
 
     <script type="importmap">
         {
@@ -92,42 +69,44 @@
         import { VRMAnimationLoaderPlugin, createVRMAnimationClip } from '@pixiv/three-vrm-animation';
 
         // ========== CONFIGURATION ==========
-        const VRM_MODEL_URL = './VRM/sample.vrm';
+        const urlParams = new URLSearchParams(window.location.search);
+        const ASSET_ROOT = urlParams.get('base_url') ? urlParams.get('base_url').replace(/\/$/, '') + '/' : 'VRM/';
 
-        const ANIM_MAP = {
-            'Angry': './VRMA/Angry.vrma',
-            'Blush': './VRMA/Blush.vrma',
-            'Clapping': './VRMA/Clapping.vrma',
-            'Goodbye': './VRMA/Goodbye.vrma',
-            'Jump': './VRMA/Jump.vrma',
-            'LookAround': './VRMA/LookAround.vrma',
-            'Relax': './VRMA/Relax.vrma',
-            'Sad': './VRMA/Sad.vrma',
-            'Sleepy': './VRMA/Sleepy.vrma',
-            'Surprised': './VRMA/Surprised.vrma',
-            'Thinking': './VRMA/Thinking.vrma',
-            'Walk1': './VRMA/Walk1.vrma',
-            'Walk2': './VRMA/Walk2.vrma',
-            'Walk3': './VRMA/Walk3.vrma',
-            'Walk4': './VRMA/Walk4.vrma',
-            'Walk5': './VRMA/Walk5.vrma',
-            'Walk6': './VRMA/Walk6.vrma',
-            'Walk7': './VRMA/Walk7.vrma',
-            'Bored': './VRMA/Bored.vrma',             
-            'Looking': './VRMA/Looking.vrma',
-            'MagicSpellCasting': './VRMA/MagicSpellCasting.vrma',
-            'SearchingFilesHigh': './VRMA/SearchingFilesHigh.vrma',
-            'TextingWhileStanding': './VRMA/TextingWhileStanding.vrma'
-        };
+        const AVATAR_NAME = urlParams.get('avatar') || "AI";
+        const TRIGGER_WORD = AVATAR_NAME.toLowerCase();
+        const TWITCH_CHANNEL = urlParams.get('channel') || "MohTecGames";
 
+        const MODEL_FILE = urlParams.get('model') || "avatar.vrm";
+        const MODEL_AI_ID = urlParams.get('model_id') || "gemma3n:e2b"; 
+        
+        const CONTEXT_SIZE = parseInt(urlParams.get('ctx')) || 12000;
+        const API_TYPE = urlParams.get('api_type') || "google"; 
+        const GOOGLE_KEY = urlParams.get('key'); 
+        const REMOTE_IP = urlParams.get('url');  
+
+        const GOOGLE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
+        const LOCAL_URL = "http://localhost:11434/api/chat";
+
+        // Proactive Chat Config
+        let proactivePrompts = [];
+        let currentPromptIndex = 0;
+        let lastProactiveTriggerTime = Date.now();
+        const PROACTIVE_FORCE_INTERVAL = 40000; // 40 Seconds
+        
+        let cooldownUntil = 0;
+        const GLOBAL_COOLDOWN = 60000; 
+
+        let dynamicAnimMap = {}; 
+        let idleAnimationKeys = [];
+
+        const SYSTEM_PROMPT = `You are ${AVATAR_NAME}, a friendly 3D avatar. Keep replies under 40 words. No markdown, no bold, no italics.`;
 
         // ========== ENGINE SETUP ==========
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x111111);
         const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 20);
-        camera.position.set(0, 1.3, 4);
+        camera.position.set(0, 1.3, 5.5); 
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -138,112 +117,317 @@
         controls.update();
 
         const light = new THREE.DirectionalLight(0xffffff, 3.0);
-        light.position.set(1, 1, 1);
-        light.position.normalize();
+        light.position.set(1, 1, 1).normalize();
         scene.add(light);
         scene.add(new THREE.AmbientLight(0xffffff, 1.0));
 
-        let currentVrm = null;
-        let currentMixer = null;
-        let currentAction = null;
+        let currentVrm = null, currentMixer = null, currentAction = null;
         const loadedClips = new Map();
         const failedAnims = new Set();
+        
+        // States
+        const STATE = { 
+            IDLE: 'IDLE', 
+            THINKING: 'THINKING', 
+            TALKING: 'TALKING', 
+            MOVING: 'MOVING', 
+            ANIMATING: 'ANIMATING', 
+            PROACTIVE: 'PROACTIVE' 
+        };
+        let currentState = STATE.IDLE;
+
+        const hudMode = document.getElementById('hud-mode');
+        const hudAnim = document.getElementById('hud-anim');
+        const hudState = document.getElementById('hud-state');
+        const statusEl = document.getElementById('status');
+        hudMode.textContent = API_TYPE.toUpperCase();
 
         const loader = new GLTFLoader();
-        loader.register((parser) => new VRMLoaderPlugin(parser));
-        loader.register((parser) => new VRMAnimationLoaderPlugin(parser));
+        loader.register((p) => new VRMLoaderPlugin(p));
+        loader.register((p) => new VRMAnimationLoaderPlugin(p));
 
-        const startBtn = document.getElementById('startBtn');
-        const progressEl = document.getElementById('progress');
-        const currentAnimEl = document.getElementById('current-anim');
-        const statusTextEl = document.getElementById('status-text');
+        function setState(newState) {
+            currentState = newState;
+            hudState.textContent = newState;
+        }
 
-        // ========== TEST LOGIC ==========
+        // ========== CORE LOGIC ==========
+
+        async function loadAnimationConfig() {
+            const iniUrl = ASSET_ROOT + 'VRMA/vrma.ini';
+            try {
+                const response = await fetch(iniUrl);
+                if (!response.ok) throw new Error("vrma.ini not found");
+                const text = await response.text();
+                const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0 && !l.startsWith('#'));
+                const newMap = {};
+                lines.forEach(line => {
+                    const parts = line.split(/\s+/);
+                    const filename = parts[0];
+                    let duration = 5; 
+                    if (parts.length > 1) duration = parseFloat(parts[1].replace('s', ''));
+                    const key = filename.split('.')[0];
+                    newMap[key] = { file: filename, duration: duration };
+                });
+                dynamicAnimMap = newMap;
+                idleAnimationKeys = Object.keys(dynamicAnimMap).filter(key => key !== 'Thinking' && key !== 'TextingWhileStanding');
+            } catch (e) {
+                console.warn("Animation config error, using empty map.");
+                idleAnimationKeys = [];
+            }
+        }
+
+        async function loadChatConfig() {
+            const chatIniUrl = ASSET_ROOT + 'chat.ini';
+            try {
+                const response = await fetch(chatIniUrl);
+                if (!response.ok) throw new Error("chat.ini not found");
+                const text = await response.text();
+                proactivePrompts = text.split('\n').map(l => l.trim()).filter(l => l.length > 0 && !l.startsWith('#'));
+            } catch (err) {
+                proactivePrompts = ["Tell a funny short joke.", "Tell a fun fact about an animal.", "Tell a fun fact about a country."];
+            }
+        }
 
         async function playAnimation(name) {
             if (!currentVrm || !loadedClips.has(name)) return;
+
+            // If the AI is actively talking or thinking, don't let a random idle animation change the state
+            const isBusy = (currentState === STATE.THINKING || currentState === STATE.TALKING || currentState === STATE.PROACTIVE);
+            if (!isBusy) {
+                setState(STATE.ANIMATING);
+            }
+
             const clip = loadedClips.get(name);
             const nextAction = currentMixer.clipAction(clip);
-            
-            // Smoothly transition to the next animation
-            nextAction.reset().setEffectiveWeight(1).fadeIn(0.5);
-            nextAction.play();
-
-            if (currentAction) {
-                currentAction.fadeOut(0.5);
-            }
-
+            nextAction.reset().setEffectiveWeight(1).fadeIn(0.5).play();
+            if (currentAction) currentAction.fadeOut(0.5);
             currentAction = nextAction;
+            hudAnim.textContent = name;
+
+            const animData = dynamicAnimMap[name];
+            const durationMs = animData ? animData.duration * 1000 : (clip.duration * 1000);
+
+            setTimeout(() => {
+                // Only set to IDLE if we weren't interrupted by the AI
+                if (currentState === STATE.ANIMATING) {
+                    setState(STATE.IDLE);
+                }
+            }, durationMs);
         }
 
-        async function runTestSequence() {
-            startBtn.disabled = true;
-            const keys = Object.keys(ANIM_MAP);
-            
-            for (let i = 0; i < keys.length; i++) {
-                const name = keys[i];
-                progressEl.textContent = `${i + 1} / ${keys.length}`;
-                currentAnimEl.textContent = name;
-                
-                if (failedAnims.has(name)) {
-                    statusTextEl.textContent = "FAILED (Not Loaded)";
-                    statusTextEl.className = "value error";
+        async function playOneOffAnimation(fileName) {
+            if (!currentVrm) return;
+            const url = ASSET_ROOT + 'VRMA/' + fileName;
+            try {
+                const gltf = await new Promise((resolve, reject) => { loader.load(url, resolve, undefined, reject); });
+                const clip = createVRMAnimationClip(gltf.userData.vrmAnimations[0], currentVrm);
+                const action = currentMixer.clipAction(clip);
+                setState(STATE.MOVING); 
+                action.reset().setEffectiveWeight(1).fadeIn(0.5).play();
+                if (currentAction) currentAction.fadeOut(0.5);
+                currentAction = action;
+                hudAnim.textContent = fileName.split('.')[0];
+                const key = fileName.split('.')[0];
+                const duration = (dynamicAnimMap[key]?.duration || clip.duration || 5) * 1000;
+                setTimeout(() => { if (currentState === STATE.MOVING) setState(STATE.IDLE); }, duration);
+            } catch (err) { console.warn("One-off animation failed:", fileName); }
+        }
+
+        async function preloadAnimations() {
+            loadedClips.clear();
+            const keys = Object.keys(dynamicAnimMap);
+            for (const name of keys) {
+                try {
+                    const animFile = dynamicAnimMap[name].file;
+                    const animUrl = ASSET_ROOT + 'VRMA/' + animFile;
+                    await new Promise((res, rej) => {
+                        loader.load(animUrl, (gltf) => {
+                            const clip = createVRMAnimationClip(gltf.userData.vrmAnimations[0], currentVrm);
+                            loadedClips.set(name, clip);
+                            res();
+                        }, undefined, rej);
+                    });
+                } catch (e) { failedAnims.add(name); }
+            }
+        }
+
+        async function loadAvatar(fileName) {
+            const url = ASSET_ROOT + fileName;
+            statusEl.innerText = `Loading Avatar: ${fileName}...`;
+            const oldVrm = currentVrm;
+            const oldScene = currentVrm ? currentVrm.scene : null;
+            try {
+                if (Object.keys(dynamicAnimMap).length === 0) await loadAnimationConfig();
+                const gltf = await new Promise((resolve, reject) => { loader.load(url, resolve, undefined, reject); });
+                const newVrm = gltf.userData.vrm;
+                VRMUtils.removeUnnecessaryVertices(gltf.scene);
+                if (oldScene) scene.remove(oldScene);
+                currentVrm = newVrm;
+                currentVrm.scene.rotation.y = Math.PI;
+                scene.add(currentVrm.scene);
+                currentMixer = new THREE.AnimationMixer(currentVrm.scene);
+                await preloadAnimations();
+                statusEl.innerText = `Loaded: ${fileName}`;
+                setState(STATE.IDLE);
+            } catch (err) {
+                console.error("Avatar Swap Failed:", err);
+                if (oldVrm) {
+                    if (oldScene) scene.remove(oldScene);
+                    currentVrm = oldVrm;
+                    scene.add(currentVrm.scene);
+                    currentMixer = new THREE.AnimationMixer(currentVrm.scene);
+                    await preloadAnimations();
+                    statusEl.innerText = `Reverted to previous avatar`;
+                    setState(STATE.IDLE);
                 } else {
-                    await playAnimation(name);
-                    statusTextEl.textContent = "Playing...";
-                    statusTextEl.className = "value";
+                    statusEl.innerText = "Critical Error: No avatar loaded.";
                 }
-                // Wait 4 seconds before moving to the next animation
-                await new Promise(r => setTimeout(r, 4000));
+            }
+        }
+
+        async function askAI(prompt, isProactive = false) {
+            if (Date.now() < cooldownUntil) {
+                console.log("Bot is in cooldown. Ignoring request.");
+                return;
             }
 
-            statusTextEl.textContent = "Finished!";
-            currentAnimEl.textContent = "Done";
-            startBtn.disabled = false;
+            lastProactiveTriggerTime = Date.now();
+            cooldownUntil = Date.now() + GLOBAL_COOLDOWN;
+
+            if (isProactive) setState(STATE.PROACTIVE);
+            else setState(STATE.THINKING);
+
+            playAnimation('Looking');
+            const bubble = document.getElementById('speech-bubble');
+            bubble.textContent = "Thinking...";
+            bubble.classList.add('show');
+
+            const reinforcedPrompt = `Please keep the answer under 40 words. ${prompt}`;
+
+            try {
+                let finalContent = "";
+                let targetUrl = "";
+                let isOllamaStyle = false;
+
+                if (API_TYPE === 'google') {
+                    if (!GOOGLE_KEY) throw new Error("Google Mode: Missing ?key= in URL");
+                    targetUrl = `${GOOGLE_URL}?key=${GOOGLE_KEY}`;
+                } else if (API_TYPE === 'local') {
+                    targetUrl = LOCAL_URL;
+                    isOllamaStyle = true;
+                } else if (API_TYPE === 'remote') {
+                    if (!REMOTE_IP) throw new Error("Remote Mode: Missing ?url=IP:PORT in URL");
+                    targetUrl = `http://${REMOTE_IP}/api/chat`;
+                    isOllamaStyle = true;
+                } else { throw new Error("Invalid API Type"); }
+
+                if (!isOllamaStyle) {
+                    const response = await fetch(targetUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: SYSTEM_PROMPT + "\n\nUser: " + reinforcedPrompt }] }] })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error?.message || `HTTP Error ${response.status}`);
+                    finalContent = data.candidates[0].content.parts[0].text;
+                } else {
+                    const response = await fetch(targetUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            model: MODEL_AI_ID,
+                            messages: [{ role: 'user', content: reinforcedPrompt }],
+                            stream: true,
+                            options: { num_ctx: CONTEXT_SIZE }
+                        })
+                    });
+                    if (!response.ok) throw new Error(`Server Error: ${response.statusText}`);
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        const chunk = decoder.decode(value, { stream: true });
+                        const lines = chunk.split('\n');
+                        for (const line of lines) {
+                            if (!line.trim()) continue;
+                            try {
+                                const json = JSON.parse(line);
+                                if (json.message && json.message.content) finalContent += json.message.content;
+                            } catch (e) {}
+                        }
+                    }
+                }
+                typeWriter(finalContent.replace(/[*#_~`]/g, ''));
+
+            } catch (err) {
+                console.error("AI Error:", err);
+                bubble.textContent = "Err: " + err.message;
+                setState(STATE.IDLE);
+                setTimeout(() => bubble.classList.remove('show'), 3000);
+            }
+        }
+
+        function typeWriter(text) {
+            setState(STATE.TALKING);
+            playAnimation('TextingWhileStanding');
+            const bubble = document.getElementById('speech-bubble');
+            let i = 0; bubble.textContent = ""; bubble.classList.add('show');
+            
+            function type() {
+                if (i < text.length) {
+                    bubble.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(type, 40);
+                } else {
+                    const key = 'TextingWhileStanding';
+                    const duration = (dynamicAnimMap[key]?.duration || 5) * 1000;
+                    setTimeout(() => {
+                        bubble.classList.remove('show');
+                        setTimeout(() => { 
+                            if(!bubble.classList.contains('show') && currentState === STATE.TALKING) {
+                               setState(STATE.IDLE);
+                            }
+                        }, 1000);
+                    }, duration);
+                }
+            }
+            type();
         }
 
         // ========== INITIALIZATION ==========
 
         async function init() {
-            // 1. Load VRM
-            statusTextEl.textContent = "Loading VRM...";
-            await new Promise((resolve) => {
-                loader.load(VRM_MODEL_URL, (gltf) => {
-                    currentVrm = gltf.userData.vrm;
-                    VRMUtils.removeUnnecessaryVertices(gltf.scene);
-                    scene.add(currentVrm.scene);
-                    currentVrm.scene.rotation.y = Math.PI;
-                    currentMixer = new THREE.AnimationMixer(currentVrm.scene);
-                    resolve();
-                });
-            });
+            await loadAnimationConfig();
+            await loadChatConfig();
+            await loadAvatar(MODEL_FILE);
 
-            // 2. Preload All Animations
-            const keys = Object.keys(ANIM_MAP);
-            for (let i = 0; i < keys.length; i++) {
-                const name = keys[i];
-                progressEl.textContent = `${i} / ${keys.length}`;
-                statusTextEl.textContent = `Loading: ${name}`;
-                try {
-                    await new Promise((resolve, reject) => {
-                        loader.load(ANIM_MAP[name], (gltf) => {
-                            const vrmAnim = gltf.userData.vrmAnimations[0];
-                            const clip = createVRMAnimationClip(vrmAnim, currentVrm);
-                            loadedClips.set(name, clip);
-                            resolve();
-                        }, undefined, reject);
-                    });
-                } catch (e) {
-                    console.error(`Failed: ${name}`, e);
-                    failedAnims.add(name);
+            const keys = idleAnimationKeys;
+            setInterval(() => {
+                const now = Date.now();
+
+                // 1. Idle Animations: Only if we are truly IDLE
+                if (currentState === STATE.IDLE && keys.length > 0) {
+                    const rand = keys[Math.floor(Math.random() * keys.length)];
+                    playAnimation(rand);
                 }
-            }
 
-            statusTextEl.textContent = "Ready to Test";
-            progressEl.textContent = `${keys.length} / ${keys.length}`;
-            startBtn.disabled = false;
+                // 2. PROACTIVE FORCE TRIGGER
+                // REWORKED: We check if the bot is NOT busy with an AI task.
+                // If it's just doing an IDLE animation, we let it interrupt!
+                const isBusyWithAI = (currentState === STATE.THINKING || currentState === STATE.TALKING || currentState === STATE.MOVING);
+                
+                if (!isBusyWithAI && (now - lastProactiveTriggerTime > PROACTIVE_FORCE_INTERVAL)) {
+                    if (proactivePrompts.length > 0) {
+                        console.log(">>> TIMER REACHED: Triggering Proactive Prompt...");
+                        const prompt = proactivePrompts[currentPromptIndex];
+                        currentPromptIndex = (currentPromptIndex + 1) % proactivePrompts.length;
+                        askAI(prompt, true);
+                    }
+                }
+            }, 1000);
 
-            // 3. Start Render Loop
             const clock = new THREE.Clock();
             function animate() {
                 requestAnimationFrame(animate);
@@ -256,7 +440,42 @@
             animate();
         }
 
-        startBtn.addEventListener('click', runTestSequence);
+        ComfyJS.onChat = (user, message) => {
+            const msg = message.toLowerCase().trim();
+            if (msg.includes('avatarswap')) {
+                const words = message.split(/\s+/);
+                const cmdIndex = words.findIndex(w => w.toLowerCase().includes('avatarswap'));
+                let fileName = words[cmdIndex + 1];
+                if (fileName) {
+                    if (!fileName.toLowerCase().endsWith('.vrm')) fileName += '.vrm';
+                    loadAvatar(fileName);
+                }
+                return;
+            }
+            if (msg.includes('avatarmove')) {
+                const words = message.split(/\s+/);
+                const cmdIndex = words.findIndex(w => w.toLowerCase().includes('avatarmove'));
+                let animFile = words[cmdIndex + 1];
+                if (animFile) {
+                    if (!animFile.toLowerCase().endsWith('.vrma')) animFile += '.vrma';
+                    playOneOffAnimation(animFile);
+                }
+                return;
+            }
+            if (msg.startsWith(TRIGGER_WORD)) {
+                const prompt = message.substring(TRIGGER_WORD.length).trim();
+                if (prompt.length > 0) {
+                    askAI(prompt, false);
+                } else {
+                    const bubble = document.getElementById('speech-bubble');
+                    bubble.textContent = `Yes, ${user}?`;
+                    bubble.classList.add('show');
+                    setState(STATE.IDLE);
+                }
+            }
+        };
+        ComfyJS.Init(TWITCH_CHANNEL);
+
         init();
 
         window.addEventListener('resize', () => {
