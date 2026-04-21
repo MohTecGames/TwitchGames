@@ -1,25 +1,22 @@
 <!-- 
- * ===========================================================================
+ * =========================================================================
  * COPYRIGHT & ATTRIBUTION NOTICE
- * ===========================================================================
+ * =========================================================================
  * CREATED BY: MohTecGames
  * 
  * NOTICE: This work is protected. Any reproduction, distribution, or use 
  * of this code, its logic, or its assets requires prior written approval 
  * from MohTecGames.
- * ============================================================================
+ * =========================================================================
  --> 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VRM AI URL Generator</title>
+    <title>VRM AI URL Generator - Pro Edition</title>
     <style>
-        /* 1. GLOBAL RESET - Prevents all "leaking" by forcing padding into width calculations */
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         :root {
             --primary: #0ff;
@@ -38,19 +35,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            overflow-x: hidden; /* Prevents horizontal scroll leaking */
         }
 
         h1 { color: var(--primary); text-shadow: 0 0 10px var(--primary); margin: 0 0 10px 0; text-align: center; }
         p.subtitle { color: #aaa; margin-bottom: 40px; text-align: center; }
 
-        /* 2. CONTAINER - Strictly limits width */
-        .container {
-            width: 100%;
-            max-width: 800px;
-            display: flex;
-            flex-direction: column;
-        }
+        .container { width: 100%; max-width: 850px; display: flex; flex-direction: column; }
 
         .section-title {
             border-left: 4px solid var(--secondary);
@@ -62,7 +52,6 @@
             letter-spacing: 2px;
         }
 
-        /* 3. GRID - Uses minmax(min(100%, 250px)) to prevent overflow on mobile */
         .grid-layout {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
@@ -70,7 +59,6 @@
             width: 100%;
         }
 
-        /* 4. INPUT GROUPS - No fixed widths, uses 100% of the grid cell */
         .input-group {
             background: var(--card-bg);
             padding: 15px;
@@ -82,7 +70,7 @@
             width: 100%;
         }
 
-        label { font-size: 0.8rem; color: #aaa; text-transform: uppercase; }
+        label { font-size: 0.75rem; color: #aaa; text-transform: uppercase; font-weight: bold; }
         small { font-size: 0.7rem; color: #666; margin-top: -5px; }
 
         input, select {
@@ -93,15 +81,14 @@
             border-radius: 4px;
             font-size: 0.9rem;
             outline: none;
-            width: 100%; /* Fills the input-group */
+            width: 100%;
         }
 
         input:focus { border-color: var(--primary); }
 
-        /* 5. RESULT AREA */
         .result-area {
             width: 100%;
-            max-width: 800px;
+            max-width: 850px;
             background: #111;
             padding: 25px;
             border-radius: 12px;
@@ -109,7 +96,7 @@
             margin-top: 40px;
             box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
             text-align: center;
-            box-sizing: border-box; /* Important for padding */
+            box-sizing: border-box;
         }
 
         #generatedUrl {
@@ -154,18 +141,27 @@
 
     <div class="container">
         
-        <!-- STEP 1: BASE URL -->
-        <div class="section-title">Step 1: Base Link</div>
+        <!-- STEP 1: THE HOST -->
+        <div class="section-title">Step 1: The Host (Where is the HTML?)</div>
         <div class="input-group">
             <label>Your HTML File URL</label>
             <input type="text" id="baseUrl" placeholder="http://localhost:5500/index.html">
+            <small>This is the link you actually open in your browser.</small>
         </div>
 
-        <!-- STEP 2: IDENTITY -->
-        <div class="section-title">Step 2: Identity & Twitch</div>
+        <!-- STEP 2: THE ASSETS -->
+        <div class="section-title">Step 2: Asset Root (Where are the VRM/VRMA files?)</div>
+        <div class="input-group">
+            <label>Base URL for Assets</label>
+            <input type="text" class="param" name="base_url" placeholder="https://mysite.com/assets/">
+            <small>The bot looks for VRM/ and VRMA/ inside this folder.</small>
+        </div>
+
+        <!-- STEP 3: IDENTITY -->
+        <div class="section-title">Step 3: Identity & Twitch</div>
         <div class="grid-layout">
             <div class="input-group">
-                <label>Avatar Name</label>
+                <label>Avatar Name (Trigger Word)</label>
                 <input type="text" class="param" name="avatar" placeholder="e.g. Luna">
             </div>
             <div class="input-group">
@@ -174,20 +170,29 @@
             </div>
         </div>
 
-        <!-- STEP 3: AI ENGINE -->
-        <div class="section-title">Step 3: AI Engine Settings</div>
+        <!-- STEP 4: MODEL DATA -->
+        <div class="section-title">Step 4: Model Data</div>
+        <div class="grid-layout">
+            <div class="input-group">
+                <label>Default Model File</label>
+                <input type="text" class="param" name="model" placeholder="avatar.vrm">
+            </div>
+            <div class="input-group">
+                <label>AI Model ID (Ollama/Gemini)</label>
+                <input type="text" class="param" name="model_id" placeholder="llama3.2:3b-Q3_K_M">
+            </div>
+        </div>
+
+        <!-- STEP 5: AI ENGINE -->
+        <div class="section-title">Step 5: AI Engine Settings</div>
         <div class="grid-layout">
             <div class="input-group">
                 <label>API Type</label>
                 <select id="api_type" class="param" name="api_type" onchange="toggleModeInputs()">
-                    <option value="google">Google (Requires Key)</option>
-                    <option value="local">Local (localhost)</option>
+                    <option value="google">Google (Gemini)</option>
+                    <option value="local">Local (Ollama)</option>
                     <option value="remote">Remote (Custom IP)</option>
                 </select>
-            </div>
-            <div class="input-group">
-                <label>AI Model Name</label>
-                <input type="text" class="param" name="model" placeholder="llama3.2:3b-Q3_K_M">
             </div>
             <div class="input-group">
                 <label>Context Size</label>
@@ -196,12 +201,12 @@
         </div>
 
         <!-- CONDITIONAL INPUTS -->
-        <div id="google-inputs" class="input-group">
+        <div id="google-inputs" class="input-group" style="margin-top:15px;">
             <label>Google API Key</label>
             <input type="text" class="param" name="key" placeholder="AIzaSy...">
         </div>
 
-        <div id="remote-inputs" class="input-group" style="display:none;">
+        <div id="remote-inputs" class="input-group" style="display:none; margin-top:15px;">
             <label>Remote IP & Port</label>
             <input type="text" class="param" name="url" placeholder="192.168.2.4:11434">
         </div>
@@ -218,7 +223,6 @@
     </div>
 
     <script>
-        // Handles showing/hiding conditional inputs
         function toggleModeInputs() {
             const mode = document.getElementById('api_type').value;
             document.getElementById('google-inputs').style.display = (mode === 'google') ? 'flex' : 'none';
@@ -230,7 +234,7 @@
             const baseUrl = baseUrlInput.value.trim();
             
             if (!baseUrl) {
-                alert("Please enter a Base URL first!");
+                alert("Please enter the Host URL (Step 1) first!");
                 return;
             }
 
@@ -248,7 +252,9 @@
             });
 
             const queryString = params.toString();
-            const finalUrl = baseUrl + (queryString ? "?" + queryString : "");
+            // Ensure we don't double up on question marks
+            const separator = baseUrl.includes('?') ? '&' : '?';
+            const finalUrl = baseUrl + separator + queryString;
             
             document.getElementById('generatedUrl').value = finalUrl;
         }
