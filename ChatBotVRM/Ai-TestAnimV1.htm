@@ -1,24 +1,48 @@
 <!-- 
- * =========================================================================
+ * ===========================================================================
  * COPYRIGHT & ATTRIBUTION NOTICE
- * =============================================================================
+ * ===========================================================================
  * CREATED BY: MohTecGames
  * 
  * NOTICE: This work is protected. Any reproduction, distribution, or use 
  * of this code, its logic, or its assets requires prior written approval 
  * from MohTecGames.
- * ==========================================================================
+ * ===========================================================================
  --> 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VRM AI Chatbot - Pro Edition</title>
+    <title>VRM AI Chatbot - DEV TEST TOOL</title>
     <script src="https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js"></script>
     <style>
-        body { margin: 0; padding: 0; overflow: hidden; background-color: transparent; font-family: sans-serif; }
+        body { margin: 0; padding: 0; overflow: hidden; background-color: #111; font-family: sans-serif; }
         canvas { display: block; width: 100vw; height: 100vh; background: transparent; }
+        
+        /* TEST CONTROL PANEL */
+        #test-panel {
+            position: fixed; top: 10px; left: 10px; width: 280px;
+            background: rgba(0, 0, 0, 0.85); color: white; padding: 15px;
+            border-radius: 10px; border: 1px solid #444; z-index: 3000;
+            font-size: 13px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        #test-panel h3 { margin: 0 0 10px 0; font-size: 16px; color: #00ff00; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        .control-group { margin-bottom: 15px; }
+        .control-group label { display: block; margin-bottom: 5px; color: #aaa; font-size: 11px; text-transform: uppercase; }
+        .control-group input, .control-group select {
+            width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555;
+            background: #222; color: white; box-sizing: border-box;
+        }
+        .btn-row { display: flex; gap: 5px; }
+        button {
+            flex: 1; padding: 8px; cursor: pointer; border: none; border-radius: 4px;
+            background: #007bff; color: white; font-weight: bold; transition: 0.2s;
+        }
+        button:hover { background: #0056b3; }
+        button.secondary { background: #6c757d; }
+
+        /* ORIGINAL UI */
         #speech-bubble {
             position: fixed; bottom: 150px; left: 50%; transform: translateX(-50%) scale(0.8);
             background: white; border-radius: 25px; padding: 15px 30px; font-size: 1.2rem;
@@ -40,6 +64,39 @@
     </style>
 </head>
 <body>
+
+    <!-- TEST CONTROL PANEL -->
+    <div id="test-panel">
+        <h3>🛠 DEV TEST TOOL</h3>
+        
+        <div class="control-group">
+            <label>Avatar Filename</label>
+            <div class="btn-row">
+                <input type="text" id="avatar-input" placeholder="e.g. model.vrm">
+                <button id="btn-load-avatar">Load</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Select Animation</label>
+            <select id="anim-dropdown">
+                <option value="">-- Load .ini first --</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>Duration (from .ini)</label>
+            <input type="text" id="duration-display" readonly placeholder="0.0s">
+        </div>
+
+        <div class="control-group">
+            <button id="btn-play-anim" class="secondary">Play Selected</button>
+        </div>
+        
+        <div style="font-size: 9px; color: #666; text-align: center;">
+            Status: <span id="test-status">Ready</span>
+        </div>
+    </div>
 
     <div id="debug-hud">
         <div>MODE: <span id="hud-mode">DETECTING...</span></div>
@@ -87,11 +144,10 @@
         const GOOGLE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
         const LOCAL_URL = "http://localhost:11434/api/chat";
 
-        // Proactive Chat Config
         let proactivePrompts = [];
         let currentPromptIndex = 0;
         let lastProactiveTriggerTime = Date.now();
-        const PROACTIVE_FORCE_INTERVAL = 40000; // 40 Seconds
+        const PROACTIVE_FORCE_INTERVAL = 40000; 
         
         let cooldownUntil = 0;
         const GLOBAL_COOLDOWN = 60000; 
@@ -125,15 +181,7 @@
         const loadedClips = new Map();
         const failedAnims = new Set();
         
-        // States
-        const STATE = { 
-            IDLE: 'IDLE', 
-            THINKING: 'THINKING', 
-            TALKING: 'TALKING', 
-            MOVING: 'MOVING', 
-            ANIMATING: 'ANIMATING', 
-            PROACTIVE: 'PROACTIVE' 
-        };
+        const STATE = { IDLE: 'IDLE', THINKING: 'THINKING', TALKING: 'TALKING', MOVING: 'MOVING', ANIMATING: 'ANIMATING', PROACTIVE: 'PROACTIVE' };
         let currentState = STATE.IDLE;
 
         const hudMode = document.getElementById('hud-mode');
@@ -141,6 +189,12 @@
         const hudState = document.getElementById('hud-state');
         const statusEl = document.getElementById('status');
         hudMode.textContent = API_TYPE.toUpperCase();
+
+        // Test UI Elements
+        const animDropdown = document.getElementById('anim-dropdown');
+        const durationDisplay = document.getElementById('duration-display');
+        const avatarInput = document.getElementById('avatar-input');
+        const testStatus = document.getElementById('test-status');
 
         const loader = new GLTFLoader();
         loader.register((p) => new VRMLoaderPlugin(p));
@@ -160,6 +214,7 @@
                 if (!response.ok) throw new Error("vrma.ini not found");
                 const text = await response.text();
                 const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0 && !l.startsWith('#'));
+
                 const newMap = {};
                 lines.forEach(line => {
                     const parts = line.split(/\s+/);
@@ -170,7 +225,20 @@
                     newMap[key] = { file: filename, duration: duration };
                 });
                 dynamicAnimMap = newMap;
-                idleAnimationKeys = Object.keys(dynamicAnimMap).filter(key => key !== 'Thinking' && key !== 'TextingWhileStanding');
+
+                idleAnimationKeys = Object.keys(dynamicAnimMap).filter(key => 
+                    key !== 'Thinking' && key !== 'TextingWhileStanding'
+                );
+
+                // UPDATE TEST DROPDOWN
+                animDropdown.innerHTML = '<option value="">-- Select Animation --</option>';
+                Object.keys(dynamicAnimMap).forEach(key => {
+                    const opt = document.createElement('option');
+                    opt.value = key;
+                    opt.textContent = key;
+                    animDropdown.appendChild(opt);
+                });
+
             } catch (e) {
                 console.warn("Animation config error, using empty map.");
                 idleAnimationKeys = [];
@@ -192,11 +260,8 @@
         async function playAnimation(name) {
             if (!currentVrm || !loadedClips.has(name)) return;
 
-            // If the AI is actively talking or thinking, don't let a random idle animation change the state
             const isBusy = (currentState === STATE.THINKING || currentState === STATE.TALKING || currentState === STATE.PROACTIVE);
-            if (!isBusy) {
-                setState(STATE.ANIMATING);
-            }
+            if (!isBusy) setState(STATE.ANIMATING);
 
             const clip = loadedClips.get(name);
             const nextAction = currentMixer.clipAction(clip);
@@ -209,10 +274,7 @@
             const durationMs = animData ? animData.duration * 1000 : (clip.duration * 1000);
 
             setTimeout(() => {
-                // Only set to IDLE if we weren't interrupted by the AI
-                if (currentState === STATE.ANIMATING) {
-                    setState(STATE.IDLE);
-                }
+                if (currentState === STATE.ANIMATING) setState(STATE.IDLE);
             }, durationMs);
         }
 
@@ -255,8 +317,10 @@
         async function loadAvatar(fileName) {
             const url = ASSET_ROOT + fileName;
             statusEl.innerText = `Loading Avatar: ${fileName}...`;
+            testStatus.textContent = "Loading...";
             const oldVrm = currentVrm;
             const oldScene = currentVrm ? currentVrm.scene : null;
+
             try {
                 if (Object.keys(dynamicAnimMap).length === 0) await loadAnimationConfig();
                 const gltf = await new Promise((resolve, reject) => { loader.load(url, resolve, undefined, reject); });
@@ -269,9 +333,11 @@
                 currentMixer = new THREE.AnimationMixer(currentVrm.scene);
                 await preloadAnimations();
                 statusEl.innerText = `Loaded: ${fileName}`;
+                testStatus.textContent = "Success";
                 setState(STATE.IDLE);
             } catch (err) {
                 console.error("Avatar Swap Failed:", err);
+                testStatus.textContent = "Failed (Reverting)";
                 if (oldVrm) {
                     if (oldScene) scene.remove(oldScene);
                     currentVrm = oldVrm;
@@ -287,10 +353,7 @@
         }
 
         async function askAI(prompt, isProactive = false) {
-            if (Date.now() < cooldownUntil) {
-                console.log("Bot is in cooldown. Ignoring request.");
-                return;
-            }
+            if (Date.now() < cooldownUntil) return;
 
             lastProactiveTriggerTime = Date.now();
             cooldownUntil = Date.now() + GLOBAL_COOLDOWN;
@@ -407,15 +470,11 @@
             setInterval(() => {
                 const now = Date.now();
 
-                // 1. Idle Animations: Only if we are truly IDLE
                 if (currentState === STATE.IDLE && keys.length > 0) {
                     const rand = keys[Math.floor(Math.random() * keys.length)];
                     playAnimation(rand);
                 }
 
-                // 2. PROACTIVE FORCE TRIGGER
-                // REWORKED: We check if the bot is NOT busy with an AI task.
-                // If it's just doing an IDLE animation, we let it interrupt!
                 const isBusyWithAI = (currentState === STATE.THINKING || currentState === STATE.TALKING || currentState === STATE.MOVING);
                 
                 if (!isBusyWithAI && (now - lastProactiveTriggerTime > PROACTIVE_FORCE_INTERVAL)) {
@@ -439,6 +498,33 @@
             }
             animate();
         }
+
+        // ========== TESTER EVENT LISTENERS ==========
+
+        // 1. Animation Dropdown Logic
+        animDropdown.addEventListener('change', (e) => {
+            const key = e.target.value;
+            if (key && dynamicAnimMap[key]) {
+                durationDisplay.value = dynamicAnimMap[key].duration + "s";
+            } else {
+                durationDisplay.value = "";
+            }
+        });
+
+        // 2. Play Selected Button
+        document.getElementById('btn-play-anim').addEventListener('click', () => {
+            const key = animDropdown.value;
+            if (key) playAnimation(key);
+            else alert("Select an animation first!");
+        });
+
+        // 3. Avatar Input Logic
+        document.getElementById('btn-load-avatar').addEventListener('click', () => {
+            let name = avatarInput.value.trim();
+            if (!name) return;
+            if (!name.toLowerCase().endsWith('.vrm')) name += '.vrm';
+            loadAvatar(name);
+        });
 
         ComfyJS.onChat = (user, message) => {
             const msg = message.toLowerCase().trim();
@@ -464,9 +550,8 @@
             }
             if (msg.startsWith(TRIGGER_WORD)) {
                 const prompt = message.substring(TRIGGER_WORD.length).trim();
-                if (prompt.length > 0) {
-                    askAI(prompt, false);
-                } else {
+                if (prompt.length > 0) askAI(prompt, false);
+                else {
                     const bubble = document.getElementById('speech-bubble');
                     bubble.textContent = `Yes, ${user}?`;
                     bubble.classList.add('show');
