@@ -332,7 +332,7 @@
             bubble.textContent = "Thinking...";
             bubble.classList.add('show');
 
-            const reinforcedPrompt = `Please keep the answer under 40 words. ${prompt}`;
+            const reinforcedPrompt = `Constraints: Max 40 words. Format: Compact, minimal whitespace, no newlines. Style: High emoji density for expression. ${prompt}`;
 
             try {
                 let finalContent = "";
