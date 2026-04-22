@@ -21,7 +21,7 @@ A polished, responsive, and fullscreen implementation of the classic arcade sens
 
 ---
 
-### 2. Twitch Space Shooter Pro (Parametric Burst)
+### 2. Twitch Space Shooter
 An action-packed space shooter where the Twitch Chat is the controller. This game uses ComfyJS to bridge the gap between the streamer's audience and the game engine, allowing viewers to pilot the ship and trigger massive attacks.
 
 *   **Genre:** Twitch-Integrated Arcade Shooter
@@ -63,7 +63,7 @@ A mystical, interactive experience designed for streamers to provide live "readi
 
 ---
 
-### 4. VRM AI Chatbot (Pro Edition)
+### 4. VRM AI Chatbot
 An advanced, interactive 3D companion designed to live directly on your stream. This companion uses Large Language Models (LLMs) to listen to your Twitch chat and respond in real-time with animated speech bubbles.
 
 *   **Genre:** AI-Driven Interactive Avatar
