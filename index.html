@@ -26,6 +26,7 @@
             --card-bg: rgba(0, 0, 0, 0.4);
             --config-bg: rgba(255, 255, 255, 0.15);
             --text-color: #ffffff;
+            --accent-color: #ffdb3a;
         }
 
         body, html {
@@ -88,34 +89,9 @@
         p.subtitle {
             color: white;
             font-size: 1.4rem;
-            margin-bottom: 10px; /* Reduced margin to bring video closer */
+            margin-bottom: 10px;
             font-weight: 500;
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-        }
-
-        /* --- VIDEO DEMO SECTION --- */
-        .video-showcase {
-            width: 100%;
-            max-width: 900px;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        .video-wrapper {
-            position: relative;
-            border-radius: 20px;
-            overflow: hidden;
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-        }
-
-        video {
-            width: 100%;
-            display: block;           
-            aspect-ratio: 16 / 9; 
         }
 
         /* --- SECTION TITLES --- */
@@ -128,13 +104,15 @@
             font-weight: bold;
         }
 
-        /* --- GAME GRID (Main Cards) --- */
+        /* --- GAME GRID (Configured for 6 per line) --- */
         .game-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            /* minmax 180px allows enough room for 6 cards on large screens */
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 20px;
             width: 100%;
-            max-width: 1200px; 
+            /* Increased max-width to 1600px to accommodate 6 cards across */
+            max-width: 1600px; 
         }
 
         .game-card {
@@ -143,15 +121,13 @@
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 20px;
-            padding: 25px 15px;
+            padding: 20px 15px;
             text-align: center;
             color: white;
-            text-decoration: none;
-            transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
-            cursor: pointer;
+            transition: all 0.3s ease;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
@@ -163,64 +139,108 @@
         }
 
         .game-icon {
-            font-size: 50px;
-            margin-bottom: 15px;
+            font-size: 45px;
+            margin-bottom: 10px;
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
         }
 
         .game-title {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             font-weight: 800;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             color: #ffffff;
             text-shadow: 0 3px 6px rgba(0, 0, 0, 0.8);
         }
 
         .game-desc {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 400;
             line-height: 1.4;
             color: #f0f0f0;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+            margin-bottom: 15px;
+            flex-grow: 1; /* Ensures buttons align at the bottom of all cards */
         }
 
-        /* --- CONFIGURATION SECTION --- */
-        .config-container {
-            width: 100%;
-            max-width: 800px; 
-            background: var(--config-bg);
-            backdrop-filter: blur(15px);
-            border-radius: 15px;
-            padding: 20px;
+        /* --- CARD BUTTONS --- */
+        .card-actions {
             display: flex;
+            gap: 8px;
+            width: 100%;
             justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
+        }
+
+        .btn {
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 8px;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .btn-play {
+            background: white;
+            color: var(--sky-top);
+            padding: 8px 12px;
+            flex: 2; 
+            font-size: 0.8rem;
+        }
+
+        .btn-play:hover {
+            background: var(--accent-color);
+            color: #000;
+        }
+
+        .btn-config {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 8px 10px;
+            flex: 1; 
+            font-size: 0.75rem;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .config-link {
-            color: white;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: bold;
-            padding: 10px 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            transition: 0.3s;
-            white-space: nowrap;
+        .btn-config:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
-        .config-link:hover {
-            background: white;
-            color: var(--sky-top);
+        /* --- VIDEO SECTION --- */
+        .video-showcase {
+            width: 100%;
+            max-width: 900px;
+            margin-top: 20px;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        .video-wrapper {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            /* FAIL-SAFE: If the video poster fails to load, this gradient shows up */
+            background: linear-gradient(45deg, #3a8cd6, #00a8cc);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            min-height: 250px; /* Prevents layout jump */
+        }
+
+        video {
+            width: 100%;
+            display: block;           
+            aspect-ratio: 16 / 9; 
+            position: relative;
+            z-index: 2;
         }
 
         /* Mobile Responsive */
         @media (max-width: 600px) {
             h1 { font-size: 2.5rem; }
             .game-grid { grid-template-columns: 1fr; }
-            .config-container { flex-direction: column; align-items: center; gap: 10px; }
             .video-showcase { margin-bottom: 30px; }
         }
     </style>
@@ -236,66 +256,91 @@
         <h1 id="main-title">MohTecGames</h1>
         <p class="subtitle">Select a world to enter</p>
 
-
+        <!-- MAIN WORLD GRID -->
         <div class="section-label">Main Worlds</div>
         <div class="game-grid">
             
             <!-- GAME 1 -->
-            <a href="Flappy/FlappyV2.1.HTML" class="game-card">
+            <div class="game-card">
                 <div class="game-icon">🐦</div>
                 <div class="game-title">FlappyClone</div>
-                <div class="game-desc">A high-speed physics challenge. Don't hit the obstacles!</div>
-            </a>
+                <div class="game-desc">A high-speed physics challenge.</div>
+                <div class="card-actions">
+                    <a href="Flappy/FlappyV2.1.HTML" class="btn btn-play">Play</a>
+                </div>
+            </div>
 
             <!-- GAME 2 -->
-            <a href="Shooter/SpaceV4.HTML" class="game-card">
+            <div class="game-card">
                 <div class="game-icon">🚀</div>
                 <div class="game-title">Twitch Shooter</div>
-                <div class="game-desc">Navigate the cosmos and blast enemies in this chat-driven space combat adventure!</div>
-            </a>
+                <div class="game-desc">Navigate the cosmos and blast enemies!</div>
+                <div class="card-actions">
+                    <a href="Shooter/SpaceV4.HTML" class="btn btn-play">Play</a>
+                    <a href="Shooter/SpaceV4URLMaker.HTML" class="btn btn-config">⚙️ Config</a>
+                </div>
+            </div>
 
             <!-- GAME 3 -->
-            <a href="TarotTwitch/TarotV1.6-StandAlone.HTML" class="game-card">
+            <div class="game-card">
                 <div class="game-icon">🔮</div>
                 <div class="game-title">Tarot (Solo)</div>
-                <div class="game-desc">A peaceful, mystical reading experience for solo players.</div>
-            </a>
+                <div class="game-desc">A peaceful, mystical reading experience.</div>
+                <div class="card-actions">
+                    <a href="TarotTwitch/TarotV1.6-StandAlone.HTML" class="btn btn-play">Play</a>
+                </div>
+            </div>
 
             <!-- GAME 4 -->
-            <a href="TarotTwitch/TarotV1.6.HTML" class="game-card">
+            <div class="game-card">
                 <div class="game-icon">✨</div>
                 <div class="game-title">Tarot (Twitch)</div>
-                <div class="game-desc">Let the Universe and your community speak through the cards.</div>
-            </a>
+                <div class="game-desc">Let your community speak through the cards.</div>
+                <div class="card-actions">
+                    <a href="TarotTwitch/TarotV1.6.HTML" class="btn btn-play">Play</a>
+                    <a href="TarotTwitch/TarotV1.6URLMaker.HTML" class="btn btn-config">⚙️ Config</a>
+                </div>
+            </div>
 
-            <!-- GAME 5: AI AVATAR (NEW) -->
-            <a href="ChatBotVRM/Ai-Chat-VRMV1.2.htm?api_type=local" class="game-card">
+            <!-- GAME 5 -->
+            <div class="game-card">
                 <div class="game-icon">🤖</div>
                 <div class="game-title">AI Avatar</div>
-                <div class="game-desc">An interactive 3D companion that talks to your Twitch chat!</div>
-            </a>
+                <div class="game-desc">An interactive 3D companion!</div>
+                <div class="card-actions">
+                    <a href="ChatBotVRM/Ai-Chat-VRMV1.2.htm?api_type=local" class="btn btn-play">Play</a>
+                    <a href="ChatBotVRM/Ai-configV1.htm" class="btn btn-config">⚙️ Config</a>
+                </div>
+            </div>
+
+            <!-- GAME 6 (Placeholder) -->
+            <div class="game-card">
+                <div class="game-icon">🎮</div>
+                <div class="game-title">Coming Soon</div>
+                <div class="game-desc">More worlds are being built.</div>
+                <div class="card-actions">
+                    <a href="#" class="btn btn-play" style="opacity: 0.5; cursor: default;">Locked</a>
+                </div>
+            </div>
 
         </div>
 
-        <div class="section-label">Games System Configuration</div>
-        <div class="config-container">
-            <a href="Shooter/SpaceV4URLMaker.HTML" class="config-link">⚙️ Twitch Shooter Config</a>
-            <a href="TarotTwitch/TarotV1.6URLMaker.HTML" class="config-link">⚙️ Tarot (Twitch) Config</a>
-            <a href="ChatBotVRM/Ai-configV1.htm" class="config-link">⚙️ AI Avatar Config</a>
-        </div>
-    </div>
-
-        <!-- NEW VIDEO SECTION INTEGRATION -->
+        <!-- VIDEO SECTION (After the grid) -->
         <div class="video-showcase">
             <div class="section-label" style="margin-top: 0;">Suite Demo</div>
             <div class="video-wrapper">
-                <!-- REPLACE 'demo-video.mp4' WITH YOUR ACTUAL VIDEO FILE NAME -->
-                <video controls poster="https://via.placeholder.com/900x500/00a8cc/ffffff?text=Click+to+Watch+Demo">
+                <!-- 
+                    IMPORTANT: 
+                    Replace 'demo-poster.jpg' with a real image file in your folder 
+                    to ensure the preview works perfectly.
+                -->
+                <video controls poster="demo-poster.png">
                     <source src="demo-video.mp4" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
             </div>
         </div>
+    </div>
     
     <script>
         // --- CLOUD GENERATOR ---
@@ -332,8 +377,8 @@
                 const centerX = rect.width / 2;
                 const centerY = rect.height / 2;
 
-                const rotateX = (y - centerY) / 20;
-                const rotateY = (centerX - x) / 20;
+                const rotateX = (y - centerY) / 25;
+                const rotateY = (centerX - x) / 25;
 
                 card.style.transform = `perspective(1000px) translateY(-10px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
             });
