@@ -21,6 +21,7 @@ will not work, use instead "AvtarMove Sad"
 2. Place your .vrma animations in the /VRMA/ folder.
 3. Open the HTML file via a local web server (Live Server, XAMPP, etc.).
 4. Add as a "Browser Source" in OBS with "Allow Transparency" checked.
+5. Chat.ini holds all the questions that you would like the ChatBot to use
 
 --------------------------------------------------------------------------
 [ DEBUGGING & TESTING ]
