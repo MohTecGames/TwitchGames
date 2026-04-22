@@ -75,7 +75,8 @@ An advanced, interactive 3D companion designed to live directly on your stream. 
 *   **Twitch Chat Commands:**
     *   `[Trigger] [Message]`: Asks the AI a question.
     *   *Example:* `AI, tell me a joke!` (Note: Trigger word depends on your avatar's name).
-
+### (Note):
+To prevent game lag, set Ollama to CPU-only, cap its usage at 5-10%, and allow for 6GB of extra RAM overhead: https://github.com/MohTecGames/TwitchGames/blob/main/Ollama/readme.txt
 ---
 
 ## 🛠️ Technical Stack
