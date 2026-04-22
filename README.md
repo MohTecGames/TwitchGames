@@ -64,7 +64,7 @@ A mystical, interactive experience designed for streamers to provide live "readi
 ---
 
 ### 4. VRM AI Chatbot
-An advanced, interactive 3D companion designed to live directly on your stream. This companion uses Large Language Models (LLMs) to listen to your Twitch chat and respond in real-time with animated speech bubbles. (Note) To prevent game lag, set Ollama to CPU-only, cap its usage at 5–10%, and allow for 6GB of extra RAM overhead: https://github.com/MohTecGames/TwitchGames/blob/main/Ollama/readme.txt
+An advanced, interactive 3D companion designed to live directly on your stream. This companion uses Large Language Models (LLMs) to listen to your Twitch chat and respond in real-time with animated speech bubbles. (Note) To prevent game lag, set Ollama to CPU-only, cap its usage at 5-10%, and allow for 6GB of extra RAM overhead: https://github.com/MohTecGames/TwitchGames/blob/main/Ollama/readme.txt
 
 *   **Genre:** AI-Driven Interactive Avatar
 *   **Key Features:**
