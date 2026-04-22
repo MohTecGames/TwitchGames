@@ -42,8 +42,9 @@ The Test Tool is highly recommended for setup. It includes:
 [Trigger] [Message] -> Asks the AI a question.
 Example: "AI, tell me a joke!" 
 (Note: "AI" is the default trigger word. If your avatar is named "Luna", 
-you must type "Luna, tell me a joke!")
-
+you must type "Luna, tell me a joke!").
+- avatarmove [animation file name]
+- avatarswap [avatar skin file name]
 --------------------------------------------------------------------------
 [ ADMIN SETUP: URL INJECTION ]
 --------------------------------------------------------------------------
