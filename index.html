@@ -106,12 +106,10 @@
 
         /* --- GAME GRID (Configured for 6 per line) --- */
         .game-grid {
-            display: grid;
-            /* minmax 180px allows enough room for 6 cards on large screens */
+            display: grid;          
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 20px;
-            width: 100%;
-            /* Increased max-width to 1600px to accommodate 6 cards across */
+            width: 100%;      
             max-width: 1600px; 
         }
 
@@ -159,7 +157,7 @@
             color: #f0f0f0;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
             margin-bottom: 15px;
-            flex-grow: 1; /* Ensures buttons align at the bottom of all cards */
+            flex-grow: 1; 
         }
 
         /* --- CARD BUTTONS --- */
@@ -220,13 +218,12 @@
             position: relative;
             border-radius: 20px;
             overflow: hidden;
-            /* FAIL-SAFE: If the video poster fails to load, this gradient shows up */
             background: linear-gradient(45deg, #3a8cd6, #00a8cc);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-            min-height: 250px; /* Prevents layout jump */
+            min-height: 250px; 
         }
 
         video {
@@ -325,15 +322,10 @@
 
         </div>
 
-        <!-- VIDEO SECTION (After the grid) -->
+        <!-- VIDEO SECTION -->
         <div class="video-showcase">
             <div class="section-label" style="margin-top: 0;">Suite Demo</div>
             <div class="video-wrapper">
-                <!-- 
-                    IMPORTANT: 
-                    Replace 'demo-poster.jpg' with a real image file in your folder 
-                    to ensure the preview works perfectly.
-                -->
                 <video controls poster="demo-poster.png">
                     <source src="demo-video.mp4" type="video/mp4">
                     Your browser does not support the video tag.
