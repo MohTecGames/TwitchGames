@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Overlay URL Generator</title>
+    <style>
+        * { box-sizing: border-box; }
+        :root {
+            --primary: #d4af37; --secondary: #00d4ff; --bg: #0a0510;
+            --card-bg: rgba(0, 212, 255, 0.05); --border: rgba(0, 212, 255, 0.3);
+        }
+        body {
+            margin: 0; padding: 40px 20px; background-color: var(--bg);
+            color: white; font-family: 'Segoe UI', sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        h1 { color: var(--primary); text-shadow: 0 0 15px rgba(212, 175, 55, 0.5); margin: 0 0 10px 0; }
+        p.subtitle { color: #aaa; margin-bottom: 40px; text-align: center; font-style: italic; }
+        .container { width: 100%; max-width: 1000px; }
+        .section-title {
+            border-left: 4px solid var(--secondary); padding-left: 15px;
+            margin: 40px 0 20px 0; font-size: 1.2rem; color: var(--secondary);
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+        .input-group {
+            background: var(--card-bg); padding: 15px; border-radius: 8px;
+            border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px;
+        }
+        label { font-size: 0.75rem; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+        input, textarea, select {
+            background: #111; border: 1px solid #333; color: white;
+            padding: 10px; border-radius: 4px; font-size: 0.9rem; outline: none; width: 100%;
+        }
+        input:focus { border-color: var(--secondary); }
+        .timing-grid, .identity-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        
+        /* --- CHECKBOX STYLING --- */
+        .checkbox-group {
+            display: flex; gap: 20px; flex-wrap: wrap; padding: 10px 0;
+        }
+        .checkbox-item {
+            display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem;
+        }
+        .checkbox-item input { width: auto; cursor: pointer; }
+
+        .result-area {
+            position: sticky; bottom: 20px; width: 100%; max-width: 800px;
+            background: #0a1a2e; padding: 25px; border-radius: 12px;
+            border: 2px solid var(--primary); margin-top: 60px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 212, 255, 0.2);
+            text-align: center; z-index: 100;
+        }
+        #generatedUrl {
+            width: 100%; background: transparent; border: none; color: var(--secondary);
+            font-family: 'Courier New', monospace; font-size: 1rem; margin-bottom: 20px;
+            text-align: center; word-break: break-all; padding: 5px;
+        }
+        .btn-container { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+        button { padding: 12px 30px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-generate { background: var(--primary); color: #000; }
+        .btn-copy { background: var(--secondary); color: #fff; }
+        .hint { font-size: 0.7rem; color: #777; margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+    <h1>🎬 Media Overlay URL Maker</h1>
+    <p class="subtitle">Configure your Twitch Media Overlay and generate a custom link.</p>
+
+    <div class="container">
+        <div class="section-title">Step 1: Base Link</div>
+        <div class="input-group" style="max-width: 600px;">
+            <label>Your HTML File URL</label>
+            <input type="text" id="baseUrl" placeholder="e.g. index.html">
+        </div>
+
+        <div class="section-title">Step 2: Visuals & Timing</div>
+        <div class="timing-grid">
+            <div class="input-group">
+                <label>Size (%)</label>
+                <input type="number" id="size" placeholder="30">
+            </div>
+            <div class="input-group">
+                <label>Duration (MS)</label>
+                <input type="number" id="duration" placeholder="5000">
+            </div>
+            <div class="input-group">
+                <label>Global CD (MS)</label>
+                <input type="number" id="u_cd" placeholder="10000">
+            </div>
+            <div class="input-group">
+                <label>User CD (MS)</label>
+                <input type="number" id="user_cd" placeholder="30000">
+            </div>
+        </div>
+
+        <div class="section-title">Step 3: Permissions</div>
+        <div class="input-group">
+            <label>Allowed Roles (Select all that apply)</label>
+            <div class="checkbox-group">
+                <label class="checkbox-item"><input type="checkbox" class="perm-check" value="everyone"> Everyone</label>
+                <label class="checkbox-item"><input type="checkbox" class="perm-check" value="mod"> Moderator</label>
+                <label class="checkbox-item"><input type="checkbox" class="perm-check" value="vip"> VIP</label>
+                <label class="checkbox-item"><input type="checkbox" class="perm-check" value="sub"> Subscriber</label>
+            </div>
+            <div class="hint">Note: Checking 'everyone' overrides others.</div>
+        </div>
+        <div class="input-group" style="margin-top:10px;">
+            <label>Strict Mode (Override Roles)</label>
+            <select id="strictMode">
+                <option value="">None (Use Roles/Whitelist)</option>
+                <option value="ini">INI Only (Whitelist Only)</option>
+            </select>
+        </div>
+
+        <div class="section-title">Step 4: Identity & Files</div>
+        <div class="identity-grid">
+            <div class="input-group">
+                <label>Twitch Channel</label>
+                <input type="text" id="channel" placeholder="MohTecGames">
+            </div>
+            <div class="input-group">
+                <label>Whitelist URL</label>
+                <input type="text" id="ini_url" placeholder="./data/users.ini">
+            </div>
+            <div class="input-group">
+                <label>Blacklist URL</label>
+                <input type="text" id="ban_url" placeholder="./data/ban.ini">
+            </div>
+        </div>
+
+        <div class="section-title">Step 5: Debugging</div>
+        <div class="input-group" style="max-width: 300px;">
+            <label>Debug Mode</label>
+            <select id="debug">
+                <option value="false">Off</option>
+                <option value="true">On</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="result-area">
+        <input type="text" id="generatedUrl" readonly placeholder="Your generated URL will appear here...">
+        <div class="btn-container">
+            <button class="btn-generate" onclick="generateURL()">Generate URL</button>
+            <button class="btn-copy" onclick="copyUrl()">Copy to Clipboard</button>
+        </div>
+    </div>
+
+    <script>
+        function generateURL() {
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            if (!baseUrl) { alert("Please enter a Base URL!"); return; }
+
+            const params = new URLSearchParams();
+
+            // 1. Handle Standard Inputs
+            const standardIds = ['channel', 'size', 'duration', 'u_cd', 'user_cd', 'ini_url', 'ban_url', 'debug'];
+            standardIds.forEach(id => {
+                const val = document.getElementById(id).value.trim();
+                if (val !== "") params.append(id, val);
+            });
+
+            // 2. Handle Strict Mode (ini)
+            const strict = document.getElementById('strictMode').value;
+            if (strict !== "") params.append('perms', strict);
+
+            // 3. Handle Checkboxes (Only if strict mode is NOT selected)
+            if (strict === "") {
+                const checkedRoles = [];
+                document.querySelectorAll('.perm-check:checked').forEach(cb => {
+                    checkedRoles.push(cb.value);
+                });
+                if (checkedRoles.length > 0) {
+                    params.append('perms', checkedRoles.join(','));
+                }
+            }
+
+            const queryString = params.toString();
+            const finalUrl = baseUrl + (queryString ? "?" + queryString : "");
+            document.getElementById('generatedUrl').value = finalUrl;
+        }
+
+        function copyUrl() {
+            const copyText = document.getElementById("generatedUrl");
+            if (!copyText.value) return;
+            copyText.select();
+            navigator.clipboard.writeText(copyText.value);
+            const btn = document.querySelector('.btn-copy');
+            const original = btn.innerText;
+            btn.innerText = "COPIED!";
+            setTimeout(() => btn.innerText = original, 2000);
+        }
+    </script>
+</body>
+</html>

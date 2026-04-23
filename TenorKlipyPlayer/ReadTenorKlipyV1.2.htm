@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Twitch Media Overlay Pro</title>
+    
+    <!-- 
+    DEPENDENCY: Comfy.js
+    This script requires the Comfy.js library to handle Twitch IRC connections.    
+    -->
+    <script src="https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js"></script>
+
+    <style>
+        /* 
+         * UI STYLING
+         * We use a transparent body so this can be used as an OBS Browser Source.
+         */
+        body { 
+            margin: 0; padding: 0; overflow: hidden; 
+            background-color: rgba(0, 0, 0, 0); 
+            display: flex; justify-content: center; align-items: center; 
+            font-family: 'Segoe UI', sans-serif; 
+        }
+        canvas { display: block; background-color: transparent; position: absolute; top: 0; left: 0; z-index: 1; }
+
+        /* Debug Dashboard Styling - Only visible when ?debug=true is in URL */
+        .debug-box {
+            position: absolute; left: 10px;
+            background: rgba(0, 0, 0, 0.8); color: white;
+            padding: 10px; border-radius: 5px;
+            font-size: 12px; pointer-events: none; z-index: 100;
+            min-width: 150px; max-width: 250px;
+            white-space: pre-wrap; 
+        }
+
+        .debug-hidden { display: none !important; }
+
+        #config-box { top: 10px; border-color: #0ff; color: #0ff; }
+        #cooldown-box { top: 110px; border-color: #ff0; color: #ff0; }
+        #ini-box { top: 210px; border-color: #0f0; color: #0f0; }
+        #ban-box { top: 310px; border-color: #f00; color: #f00; }
+
+        /* Generic class for both GIFs and Videos */
+        .summoned-media {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            object-fit: contain; z-index: 5; pointer-events: none; 
+            transition: opacity 0.5s ease; 
+        }
+    </style>
+</head>
+<body id="gameBody">
+
+<!-- DEBUG DASHBOARD ELEMENTS -->
+<div id="config-box" class="debug-box">Config: Loading...</div>
+<div id="cooldown-box" class="debug-box">Cooldowns: None</div>
+<div id="ini-box" class="debug-box">Whitelist: Empty</div>
+<div id="ban-box" class="debug-box">Blacklist: Empty</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<script>
+    /**
+     * ==============================================================================
+     * 1. CONFIGURATION & URL PARAMETERS
+     * ==============================================================================
+     */
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Twitch Connection
+    const TWITCH_CHANNEL = urlParams.get('channel') || "MohTecGames"; 
+    
+    // Permissions Logic (Supports combinations like "mod,vip,sub")
+    const PERM_SETTING = urlParams.get('perms') || 'everyone';
+    
+    // Visuals
+    const GIF_SIZE_VAL = parseFloat(urlParams.get('size')) || 30; 
+    const GIF_DURATION = parseInt(urlParams.get('duration')) || 5000; 
+    
+    // Cooldowns (in milliseconds)
+    const UNIVERSAL_CD = parseInt(urlParams.get('u_cd')) || 10000; 
+    const USER_CD = parseInt(urlParams.get('user_cd')) || 30000;   
+    
+    // File Paths
+    const INI_URL = urlParams.get('ini_url') || './data/users.ini';
+    const BAN_URL = urlParams.get('ban_url') || './data/ban.ini';
+    
+    // Debugging
+    const DEBUG_MODE = urlParams.get('debug') === 'true';
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Debug DOM Elements
+    const debugElements = document.querySelectorAll('.debug-box');
+    const configEl = document.getElementById('config-box');
+    const cooldownEl = document.getElementById('cooldown-box');
+    const iniEl = document.getElementById('ini-box');
+    const banEl = document.getElementById('ban-box');
+
+    if (!DEBUG_MODE) {
+        debugElements.forEach(el => el.classList.add('debug-hidden'));
+    }
+
+    /**
+     * ==============================================================================
+     * 2. STATE MANAGEMENT
+     * ==============================================================================
+     */
+    let lastGlobalSummonTime = 0;     
+    let userLastSummonTimes = {};     
+    let allowedIniUsers = [];         
+    let iniLoaded = false;            
+    let bannedUsers = [];             
+    let banLoaded = false;            
+
+    /**
+     * ==============================================================================
+     * 3. FILE LOADING LOGIC
+     * ==============================================================================
+     */
+    function parseFile(text) {
+        return text.split(/\r?\n/).map(line => line.trim()).filter(line => line.length > 0);
+    }
+
+    async function loadIniFile() {
+        try {
+            const response = await fetch(INI_URL);
+            if (!response.ok) throw new Error("Not Found");
+            allowedIniUsers = parseFile(await response.text());
+            iniLoaded = true;
+            console.log("✅ Whitelist loaded:", allowedIniUsers);
+        } catch (err) { console.error("❌ Whitelist Load Error:", err.message); }
+    }
+
+    async function loadBanFile() {
+        try {
+            const response = await fetch(BAN_URL);
+            if (!response.ok) throw new Error("Not Found");
+            bannedUsers = parseFile(await response.text());
+            banLoaded = true;
+            console.log("✅ Blacklist loaded:", bannedUsers);
+        } catch (err) { console.error("❌ Blacklist Load Error:", err.message); }
+    }
+
+    Promise.all([loadIniFile(), loadBanFile()]);
+
+    /**
+     * ==============================================================================
+     * 4. PERMISSION ENGINE (COMBINATION LOGIC)
+     * ==============================================================================
+     */
+    function checkPermission(user, userState) {
+        // STEP 1: THE BLACKLIST
+        if (banLoaded && bannedUsers.includes(user)) {
+            console.warn(`[BLOCK] BANNED USER: ${user}`);
+            return false;
+        }
+
+        // STEP 2: STRICT MODE (INI Only)
+        if (PERM_SETTING === 'ini') {
+            const isWhitelisted = iniLoaded && allowedIniUsers.includes(user);
+            if (!isWhitelisted) console.warn(`[BLOCK] STRICT MODE (INI ONLY): ${user}`);
+            return isWhitelisted;
+        }
+
+        // STEP 3: HYBRID MODE (Role OR Whitelist)
+        const isWhitelisted = iniLoaded && allowedIniUsers.includes(user);
+        if (isWhitelisted) return true;
+
+        // STEP 4: ROLE COMBINATION CHECK
+        // Split the perms string (e.g., "mod,vip") into an array
+        const allowedRoles = PERM_SETTING.split(',');
+
+        if (allowedRoles.includes('everyone')) return true;
+
+        let meetsRole = false;
+        if (allowedRoles.includes('mod') && userState.mod) meetsRole = true;
+        if (allowedRoles.includes('vip') && userState.vip) meetsRole = true;
+        if (allowedRoles.includes('sub') && userState.subscriber) meetsRole = true;
+
+        if (meetsRole) return true;
+
+        console.warn(`[BLOCK] INSUFFICIENT PERMISSIONS (${PERM_SETTING}): ${user}`);
+        return false;
+    }
+
+    /**
+     * ==============================================================================
+     * 5. MEDIA SUMMONING LOGIC
+     * ==============================================================================
+     */
+    function summonMedia(type, id) {
+        let url = "";
+        let el;
+
+        if (type === 'tenor') {
+            url = `https://c.tenor.com/${id}/tenor.gif`;
+            el = document.createElement('img');
+        } 
+        else if (type === 'klipy') {
+            url = `https://static.klipy.com/ii/${id}.gif`;
+            el = document.createElement('img');
+        } 
+        else if (type === 'klipyvid') {
+            url = `https://static.klipy.com/ii/${id}.mp4`;
+            el = document.createElement('video');
+            el.autoplay = true;
+            el.playsInline = true;
+            el.muted = false; // Audio enabled
+        }
+
+        if (!el) return;
+
+        el.src = url;
+        el.className = 'summoned-media';
+        el.style.width = `${GIF_SIZE_VAL}vw`;
+        el.style.height = `${GIF_SIZE_VAL}vh`;
+
+        const startLifecycle = () => {
+            document.body.appendChild(el);
+            
+            // For videos, attempt to play explicitly to bypass browser autoplay blocks
+            if (el.tagName === 'VIDEO') {
+                el.play().catch(e => console.warn("Autoplay prevented. Ensure OBS 'Control audio via OBS' is checked.", e));
+            }
+
+            setTimeout(() => {
+                el.style.opacity = '0'; 
+                setTimeout(() => {
+                    if (el.parentNode) {
+                        if (el.tagName === 'VIDEO') el.pause();
+                        document.body.removeChild(el);
+                    }
+                }, 500);
+            }, GIF_DURATION);
+        };
+
+        if (el.tagName === 'IMG') {
+            el.onload = startLifecycle;
+            el.onerror = () => console.error(`[BLOCK] INVALID GIF ID: ${id}`);
+        } else {
+            el.addEventListener('canplaythrough', startLifecycle, { once: true });
+            el.onerror = () => console.error(`[BLOCK] INVALID VIDEO ID: ${id}`);
+        }
+    }
+
+    /**
+     * ==============================================================================
+     * 6. TWITCH INTEGRATION (ComfyJS)
+     * ==============================================================================
+     */
+    ComfyJS.Init(TWITCH_CHANNEL);
+
+    ComfyJS.onChat = (user, message, userState) => {
+        const msg = message.trim();
+        const now = Date.now();
+
+        const parts = msg.split(/\s+/);
+        const command = parts[0].toLowerCase();
+        const id = parts[1];
+
+        const validCommands = ['tenor', 'klipy', 'klipyvid'];
+
+        if (validCommands.includes(command) && id) {
+            
+            if (!checkPermission(user, userState)) return;
+
+            if (now - lastGlobalSummonTime < UNIVERSAL_CD) {
+                console.warn(`[BLOCK] GLOBAL COOLDOWN: ${user}`);
+                return;
+            }
+
+            const userLastTime = userLastSummonTimes[user] || 0;
+            if (now - userLastTime < USER_CD) {
+                console.warn(`[BLOCK] USER COOLDOWN: ${user}`);
+                return;
+            }
+
+            lastGlobalSummonTime = now;
+            userLastSummonTimes[user] = now;
+            summonMedia(command, id);
+        }
+    };
+
+    /**
+     * ==============================================================================
+     * 7. DEBUG DASHBOARD UPDATE LOOP
+     * ==============================================================================
+     */
+    setInterval(() => {
+        if (!DEBUG_MODE) return;
+
+        configEl.innerHTML = `<b style="color:#fff">Config:</b><br>Ch: ${TWITCH_CHANNEL}<br>Per: ${PERM_SETTING}<br>Sz: ${GIF_SIZE_VAL}%`;
+
+        const now = Date.now();
+        let cdText = "";
+        const globalRem = Math.max(0, Math.ceil((lastGlobalSummonTime + UNIVERSAL_CD - now) / 1000));
+        cdText += `Global: ${globalRem > 0 ? globalRem + 's' : 'READY'}\n`;
+        
+        let userList = [];
+        for (let u in userLastSummonTimes) {
+            const uRem = Math.ceil((userLastSummonTimes[u] + USER_CD - now) / 1000);
+            if (uRem > 0) userList.push(`${u}: ${uRem}s`);
+        }
+        cdText += `Users: ${userList.length > 0 ? userList.join(', ') : 'None'}`;
+        cooldownEl.innerText = cdText;
+
+        iniEl.innerText = `Whitelist (${allowedIniUsers.length}):\n${allowedIniUsers.join('\n') || 'Empty'}`;
+        banEl.innerText = `Blacklist (${bannedUsers.length}):\n${bannedUsers.join('\n') || 'Empty'}`;
+
+    }, 1000);
+
+    /**
+     * ==============================================================================
+     * 8. ENGINE LOOP (Rendering)
+     * ==============================================================================
+     */
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function loop() {
+        requestAnimationFrame(loop);
+    }
+    loop();
+</script>
+</body>
+</html>
