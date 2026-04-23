@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Twitch Media Overlay Pro</title>
+<title>Twitch Media Overlay</title>
 
 <!-- DEPENDENCY: Comfy.js -->
 <script src="https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js"></script>
@@ -134,10 +134,8 @@ function checkPermission(user, userState) {
 }
 
 /**
-* 4. KLIPY SMART ENGINE & UTILS
+* 4. UTILS (Shared by both scripts)
 */
-
-// RECURSIVE DEEP SEARCH: Digs through any object/nested object to find the first property named "url"
 function deepFindUrl(obj) {
     if (!obj || typeof obj !== 'object') return null;
     if (typeof obj.url === 'string') return obj.url;
@@ -155,67 +153,40 @@ function extractSlugFromUrl(url) {
 }
 
 async function fetchKlipyMedia(slug) {
-    if (!KLIPY_API_KEY) {
-        console.error("❌ ERROR: KLIPY_API_KEY is missing!");
-        return null;
-    }
+    if (!KLIPY_API_KEY) return null;
     const endpoints = ['gifs', 'clips', 'static-memes'];
     for (const type of endpoints) {
         try {
             const apiUrl = `https://api.klipy.com/api/v1/${KLIPY_API_KEY}/${type}/items?slugs=${slug}`;
             const response = await fetch(apiUrl);
-            if (response.status === 403) return null;
             const json = await response.json();
             if (json.result && json.data && json.data.data && json.data.data.length > 0) {
                 return json.data.data[0];
             }
-        } catch (e) { /* try next endpoint */ }
+        } catch (e) {}
     }
     return null;
 }
 
-function summonMedia(type, data) {
+/**
+* 5. SCRIPT A: THE VIDEO ENGINE (Dedicated to <video>)
+*/
+function summonVideo(data, type) {
     let url = "";
-    let el;
-    let isVideo = false;
+    let el = document.createElement('video');
+    el.autoplay = true; el.playsInline = true; el.muted = false;
 
-    // --- PATH 1: API OBJECTS (Uses Deep Search) ---
+    // Logic for finding URL
     if (typeof data === 'object' && data !== null) {
         url = deepFindUrl(data);
-        if (url) {
-            // If user specifically asked for vidklipy OR the URL is an mp4, use video tag
-            if (type === 'vidklipy' || type === 'klipyvid' || url.includes('.mp4')) {
-                el = document.createElement('video');
-                el.autoplay = true; el.playsInline = true; el.muted = false;
-                isVideo = true;
-            } else {
-                el = document.createElement('img');
-            }
-        }
-    } 
-    // --- PATH 2: DIRECT STRING COMMANDS ---
-    else if (typeof data === 'string') {
-        if (type === 'tenor') {
-            url = `https://c.tenor.com/${data}/tenor.gif`;
-            el = document.createElement('img');
-        } else if (type === 'klipy') {
-            url = `https://static.klipy.com/ii/${data}.gif`;
-            el = document.createElement('img');
-        } else if (type === 'klipyvid' || type === 'vidklipy') {
+    } else if (typeof data === 'string') {
+        // Direct string commands for video
+        if (type === 'klipyvid' || type === 'vidklipy') {
             url = `https://static.klipy.com/ii/${data}.mp4`;
-            el = document.createElement('video');
-            el.autoplay = true; el.playsInline = true; el.muted = false;
-            isVideo = true;
-        } else if (type === 'gifklipy') {
-            url = `https://static.klipy.com/ii/${data}.gif`;
-            el = document.createElement('img');
         }
     }
 
-    if (!el || !url) {
-        console.error("❌ summonMedia Error: Could not resolve media.", { type, data });
-        return;
-    }
+    if (!url) return;
 
     el.src = url;
     el.className = 'summoned-media';
@@ -224,33 +195,62 @@ function summonMedia(type, data) {
 
     const startLifecycle = () => {
         document.body.appendChild(el);
-        if (isVideo) el.play().catch(e => console.warn("Autoplay prevented.", e));
-
+        el.play().catch(e => console.warn("Video autoplay blocked", e));
         setTimeout(() => {
             el.style.opacity = '0';
             setTimeout(() => {
-                if (el.parentNode) {
-                    if (isVideo) el.pause();
-                    document.body.removeChild(el);
-                }
+                if (el.parentNode) { el.pause(); document.body.removeChild(el); }
             }, 500);
         }, GIF_DURATION);
     };
 
-    // Loading handlers
-    if (el.tagName === 'IMG') {
-        el.onload = startLifecycle;
-        if (el.complete) startLifecycle();
-    } else if (el.tagName === 'VIDEO') {
-        el.oncanplaythrough = startLifecycle;
-        if (el.readyState >= 3) startLifecycle();
-        // Safety fallback for video loading
-        setTimeout(() => { if(el.parentNode && el.style.opacity !== '0' && el.readyState < 3) startLifecycle(); }, 3000);
-    }
+    el.oncanplaythrough = startLifecycle;
+    if (el.readyState >= 3) startLifecycle();
+    setTimeout(() => { if(el.parentNode && el.readyState < 3) startLifecycle(); }, 3000);
 }
 
 /**
-* 5. TWITCH INTEGRATION
+* 6. SCRIPT B: THE GIF ENGINE (Dedicated to <img>)
+*/
+function summonGif(data, type) {
+    let url = "";
+    let el = document.createElement('img');
+
+    // Logic for finding URL
+    if (typeof data === 'object' && data !== null) {
+        url = deepFindUrl(data);
+    } else if (typeof data === 'string') {
+        // Direct string commands for GIFs
+        if (type === 'klipy' || type === 'gifklipy') {
+            url = `https://static.klipy.com/ii/${data}.gif`;
+        } else if (type === 'tenor') {
+            url = `https://c.tenor.com/${data}/tenor.gif`;
+        }
+    }
+
+    if (!url) return;
+
+    el.src = url;
+    el.className = 'summoned-media';
+    el.style.width = `${GIF_SIZE_VAL}vw`;
+    el.style.height = `${GIF_SIZE_VAL}vh`;
+
+    const startLifecycle = () => {
+        document.body.appendChild(el);
+        setTimeout(() => {
+            el.style.opacity = '0';
+            setTimeout(() => {
+                if (el.parentNode) document.body.removeChild(el);
+            }, 500);
+        }, GIF_DURATION);
+    };
+
+    el.onload = startLifecycle;
+    if (el.complete) startLifecycle();
+}
+
+/**
+* 7. TWITCH INTEGRATION (Command Router)
 */
 ComfyJS.Init(TWITCH_CHANNEL);
 
@@ -263,8 +263,7 @@ ComfyJS.onChat = async (user, message, userState) => {
     if (command.startsWith('!')) command = command.substring(1);
 
     const input = parts[1];
-    // Updated valid commands: klipyplay is gone, vidklipy and gifklipy added
-    const validCommands = ['vidklipy', 'gifklipy', 'klipy', 'tenor', 'klipyvid'];
+    const validCommands = ['vidklipy', 'gifklipy', 'klipyvid', 'klipy', 'tenor'];
 
     if (validCommands.includes(command) && input) {
 
@@ -272,30 +271,53 @@ ComfyJS.onChat = async (user, message, userState) => {
         if (now - lastGlobalSummonTime < UNIVERSAL_CD) return;
         if (now - (userLastSummonTimes[user] || 0) < USER_CD) return;
 
-        // Handle the new split commands (API based)
-        if (command === 'vidklipy' || command === 'gifklipy') {
+        // --- ROUTE TO VIDEO ENGINE ---
+        if (command === 'vidklipy' || command === 'klipyvid') {
             let slug = input.startsWith('http') ? extractSlugFromUrl(input) : input;
             if (slug) {
-                console.log(`[API] Fetching slug for ${command}: ${slug}`);
                 const mediaData = await fetchKlipyMedia(slug);
                 if (mediaData) {
                     lastGlobalSummonTime = now;
                     userLastSummonTimes[user] = now;
-                    summonMedia(command, mediaData);
+                    summonVideo(mediaData, command);
                 }
+            } else {
+                // Fallback for direct string ID if not a URL
+                lastGlobalSummonTime = now;
+                userLastSummonTimes[user] = now;
+                summonVideo(input, command);
             }
-        }
-        // Handle existing reliable commands (String based)
+        } 
+        
+        // --- ROUTE TO GIF ENGINE ---
         else {
-            lastGlobalSummonTime = now;
-            userLastSummonTimes[user] = now;
-            summonMedia(command, input);
+            // This handles gifklipy, klipy, and tenor
+            if (command === 'gifklipy') {
+                let slug = input.startsWith('http') ? extractSlugFromUrl(input) : input;
+                if (slug) {
+                    const mediaData = await fetchKlipyMedia(slug);
+                    if (mediaData) {
+                        lastGlobalSummonTime = now;
+                        userLastSummonTimes[user] = now;
+                        summonGif(mediaData, command);
+                    }
+                } else {
+                    lastGlobalSummonTime = now;
+                    userLastSummonTimes[user] = now;
+                    summonGif(input, command);
+                }
+            } else {
+                // For tenor or direct klipy strings
+                lastGlobalSummonTime = now;
+                userLastSummonTimes[user] = now;
+                summonGif(input, command);
+            }
         }
     }
 };
 
 /**
-* 6. DEBUG & ENGINE LOOP
+* 8. DEBUG & ENGINE LOOP
 */
 setInterval(() => {
     if (!DEBUG_MODE) return;
