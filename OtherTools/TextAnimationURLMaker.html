@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>URL Animation Maker</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 40px 20px; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 550px; }
+        h2 { margin-top: 0; color: #333; text-align: center; }
+        .field { margin-bottom: 15px; display: flex; flex-direction: column; }
+        label { font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: #666; }
+        input { padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; outline: none; }
+        input:focus { border-color: #007bff; }
+        .row { display: flex; gap: 15px; }
+        .row .field { flex: 1; }
+        button { width: 100%; padding: 14px; background: #007bff; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        button:hover { background: #0056b3; }
+        #result-container { margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee; }
+        #url-output { width: 100%; background: #f8f9fa; font-size: 0.85rem; color: #333; box-sizing: border-box; cursor: text; }
+        .copy-btn { background: #28a745; margin-top: 8px; }
+        .copy-btn:hover { background: #218838; }
+        .hint { font-size: 0.75rem; color: #999; margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>URL Animation Maker 🛠️</h2>
+    
+    <!-- NEW: BASE URL FIELD -->
+    <div class="field">
+        <label>Base URL</label>
+        <input type="text" id="baseUrl" placeholder="animation.html" value="animation.html">
+        <div class="hint">The file to open (e.g., animation.html or https://mysite.com/page)</div>
+    </div>
+
+    <div class="field">
+        <label>Message Text</label>
+        <input type="text" id="text" placeholder="Enter your message...">
+    </div>
+
+    <div class="row">
+        <div class="field">
+            <label>Delay (ms)</label>
+            <input type="number" id="delay" placeholder="1000">
+        </div>
+        <div class="field">
+            <label>Total Duration (ms)</label>
+            <input type="number" id="duration" placeholder="5000">
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="field">
+            <label>Text Color</label>
+            <input type="color" id="textColor" value="#ffffff" style="height: 45px; padding: 2px; width: 100%; cursor: pointer;">
+        </div>
+        <div class="field">
+            <label>Background Color</label>
+            <input type="color" id="bgColor" value="#000000" style="height: 45px; padding: 2px; width: 100%; cursor: pointer;">
+        </div>
+    </div>
+
+    <button onclick="generateURL()">Generate URL</button>
+
+    <div id="result-container" style="display: none;">
+        <label>Your Generated URL:</label>
+        <input type="text" id="url-output" readonly>
+        <button class="copy-btn" onclick="copyURL()">Copy to Clipboard</button>
+    </div>
+</div>
+
+<script>
+    function generateURL() {
+        // 1. Get all input values
+        const baseUrlInput = document.getElementById('baseUrl').value.trim();
+        const text = document.getElementById('text').value;
+        const delay = document.getElementById('delay').value;
+        const duration = document.getElementById('duration').value;
+        const textColor = document.getElementById('textColor').value;
+        const bgColor = document.getElementById('bgColor').value;
+
+        // 2. Determine Base URL (Default to animation.html if empty)
+        let baseUrl = baseUrlInput ? baseUrlInput : "animation.html";
+
+        // 3. Create the parameters object
+        const params = new URLSearchParams();
+        
+        // Text (default if empty)
+        if (text) params.set('text', text);
+        else params.set('text', 'Default Message');
+
+        // Delay (default 1000)
+        if (delay) params.set('delay', delay);
+        else params.set('delay', '1000');
+
+        // Duration (default 5000)
+        if (duration) params.set('duration', duration);
+        else params.set('duration', '5000');
+
+        // Colors
+        params.set('textColor', textColor);
+        params.set('bgColor', bgColor);
+
+        // 4. SMART CONCATENATION
+        // If the baseUrl already has a '?' in it, we must append params using '&'
+        // Otherwise, we use '?'
+        const separator = baseUrl.includes('?') ? '&' : '?';
+        const finalURL = baseUrl + separator + params.toString();
+        
+        // 5. Show the result
+        const output = document.getElementById('url-output');
+        output.value = finalURL;
+        document.getElementById('result-container').style.display = 'block';
+    }
+
+    function copyURL() {
+        const copyText = document.getElementById("url-output");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyText.value);
+        
+        // Visual feedback
+        const btn = document.querySelector('.copy-btn');
+        const originalText = btn.innerText;
+        btn.innerText = "✅ Copied!";
+        setTimeout(() => { btn.innerText = originalText; }, 2000);
+    }
+</script>
+
+</body>
+</html>
