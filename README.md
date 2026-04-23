@@ -80,7 +80,7 @@ An advanced, interactive 3D companion designed to live directly on your stream. 
 
 ---
 
-### 5. Twitch Media Overlay Pro
+### 5. Twitch Media Overlay
 A high-performance, professional-grade media engine designed to be used as an OBS Browser Source. It allows viewers to summon rich media (GIFs and Videos) directly into the stream with advanced moderation controls.
 
 * **Genre:** Interactive Stream Utility / Media Engine
