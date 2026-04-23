@@ -9,8 +9,7 @@
  * from MohTecGames.
  * 
  * =========================================================================
- */
---> 
+ */ -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -74,6 +73,7 @@
         .btn-generate { background: var(--primary); color: #000; }
         .btn-copy { background: var(--secondary); color: #fff; }
         .hint { font-size: 0.7rem; color: #777; margin-top: 4px; }
+        .required-tag { color: #ff4444; font-size: 0.7rem; margin-left: 5px; }
     </style>
 </head>
 <body>
@@ -85,7 +85,7 @@
         <div class="section-title">Step 1: Base Link</div>
         <div class="input-group" style="max-width: 600px;">
             <label>Your HTML File URL</label>
-            <input type="text" id="baseUrl" placeholder="e.g. index.html">
+            <input type="text" id="baseUrl" placeholder="e.g. https://mohtecgames.github.io/index.html">
         </div>
 
         <div class="section-title">Step 2: Visuals & Timing</div>
@@ -127,11 +127,15 @@
             </select>
         </div>
 
-        <div class="section-title">Step 4: Identity & Files</div>
+        <div class="section-title">Step 4: Identity & API Keys</div>
         <div class="identity-grid">
             <div class="input-group">
                 <label>Twitch Channel</label>
                 <input type="text" id="channel" placeholder="MohTecGames">
+            </div>
+            <div class="input-group">
+                <label>Klipy API Key <span class="required-tag">(REQUIRED)</span></label>
+                <input type="text" id="klipy_key" placeholder="Paste your API Key here">
             </div>
             <div class="input-group">
                 <label>Whitelist URL</label>
@@ -168,8 +172,12 @@
 
             const params = new URLSearchParams();
 
-            // 1. Handle Standard Inputs
-            const standardIds = ['channel', 'size', 'duration', 'u_cd', 'user_cd', 'ini_url', 'ban_url', 'debug'];
+            // 1. Handle Standard Inputs (Added klipy_key to this list)
+            const standardIds = [
+                'channel', 'klipy_key', 'size', 'duration', 
+                'u_cd', 'user_cd', 'ini_url', 'ban_url', 'debug'
+            ];
+            
             standardIds.forEach(id => {
                 const val = document.getElementById(id).value.trim();
                 if (val !== "") params.append(id, val);
