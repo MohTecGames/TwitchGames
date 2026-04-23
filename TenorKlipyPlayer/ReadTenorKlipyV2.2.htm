@@ -126,23 +126,23 @@
      * 4. KLIPY ENGINE
      */
 
-    // NEW: Only returns URLs that actually look like media files (.mp4, .gif, .webp)
-    // This prevents the "Cross-Origin" error caused by trying to load a webpage
+    // Regex to detect media extensions even if they have query parameters (?token=...) or fragments (#top)
+    const MEDIA_REGEX = /\.(mp4|gif|webp|webm|mov)(\?|#|$)/i;
+
     function findMediaUrl(obj) {
         if (!obj || typeof obj !== 'object') return null;
         
-        // If this property is a string, check if it's a media extension
+        // If it's a string, check if it matches media pattern
         if (typeof obj === 'string') {
-            if (/\.(mp4|gif|webp|webm|mov)$/i.test(obj)) return obj;
-            return null;
+            return MEDIA_REGEX.test(obj) ? obj : null;
         }
 
         // If it's an object, check if it has a 'url' property that is a media file
         if (obj.url && typeof obj.url === 'string') {
-            if (/\.(mp4|gif|webp|webm|mov)$/i.test(obj.url)) return obj.url;
+            if (MEDIA_REGEX.test(obj.url)) return obj.url;
         }
 
-        // Otherwise, dig deeper
+        // Otherwise, recurse through all properties
         for (let key in obj) {
             let found = findMediaUrl(obj[key]);
             if (found) return found;
@@ -196,13 +196,13 @@
                 isVideo = true;
             }
         } 
-        // --- PATH 2: API OBJECT (Using the new Media-Only search) ---
+        // --- PATH 2: API OBJECT ---
         else if (typeof data === 'object' && data !== null) {
             url = findMediaUrl(data);
             
             if (url) {
-                // Determine if it's a video based on the extension
-                if (/\.(mp4|webm|mov|ogg)$/i.test(url)) {
+                // Check if the discovered URL is a video
+                if (MEDIA_REGEX.test(url) && /\.(mp4|webm|mov|ogg)$/i.test(url.split(/[?#]/)[0])) {
                     el = document.createElement('video');
                     el.autoplay = true; el.playsInline = true; el.muted = false;
                     el.loop = false;
@@ -214,7 +214,7 @@
         }
 
         if (!el || !url) {
-            console.error("❌ summonMedia Error: No valid media URL found in data.", { type, data });
+            console.error("❌ summonMedia Error: No valid media URL found.", { type, data });
             return;
         }
 
