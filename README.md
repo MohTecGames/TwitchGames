@@ -1,90 +1,108 @@
-
 # MohTecGames Interactive Suite
 
 A collection of high-performance, web-based interactive experiences. This suite includes classic arcade games, specialized interactive applications for Twitch streamers, and an advanced AI-driven 3D companion designed to engage live audiences via chat integration.
 
-## 🎮 Games Overview
+## 🎮 Interactive Experiences & Utilities
 
 [https://mohtecgames.github.io/TwitchGames/](https://mohtecgames.github.io/TwitchGames/)
 
 ### 1. Flappy Bird Fullscreen Pro
 A polished, responsive, and fullscreen implementation of the classic arcade sensation. This version is optimized for both desktop and mobile browsers, featuring smooth physics and a parallax-style background.
 
-*   **Genre:** Arcade / Casual
-*   **Key Features:**
-    *   Responsive design (scales to any screen size).
-    *   High-score tracking via `localStorage`.
-    *   Smooth gravity and collision physics.
-*   **Controls:**
-    *   **Desktop:** Spacebar or Arrow Up to flap.
-    *   **Mobile/Touch:** Tap the screen to flap.
+* **Genre:** Arcade / Casual
+* **Key Features:**
+    * Responsive design (scales to any screen size).
+    * High-score tracking via `localStorage`.
+    * Smooth gravity and collision physics.
+* **Controls:**
+    * **Desktop:** Spacebar or Arrow Up to flap.
+    * **Mobile/Touch:** Tap the screen to flap.
 
 ---
 
 ### 2. Twitch Space Shooter
 An action-packed space shooter where the Twitch Chat is the controller. This game uses ComfyJS to bridge the gap between the streamer's audience and the game engine, allowing viewers to pilot the ship and trigger massive attacks.
 
-*   **Genre:** Twitch-Integrated Arcade Shooter
-*   **Key Features:**
-    *   **Chat-Driven Gameplay:** Viewers control movement and combat via chat commands.
-    *   **Parametric Burst System:** Multiple firing modes including spread shots and "Ultimate" bursts.
-    *   **Dynamic Enemy AI:** Enemies feature different behaviors (Linear, Wander, and Zigzag).
-    *   **Visual Effects:** Particle explosions and starfield parallax.
-*   **Twitch Chat Commands:**
-    *   `gamestart`: Resets and starts a new game.
-    *   `u`: Move ship Up.
-    *   `d`: Move ship Down.
-    *   `s1`: Trigger Standard Shot.
-    *   `s2`: Trigger Burst Shot.
-    *   `s3`: Trigger Spread Shot.
-    *   `ult`: Trigger Ultimate Burst (60s Cooldown).
+* **Genre:** Twitch-Integrated Arcade Shooter
+* **Key Features:**
+    * **Chat-Driven Gameplay:** Viewers control movement and combat via chat commands.
+    * **Parametric Burst System:** Multiple firing modes including spread shots and "Ultimate" bursts.
+    * **Dynamic Enemy AI:** Enemies feature different behaviors (Linear, Wander, and Zigzag).
+    * **Visual Effects:** Particle explosions and starfield parallax.
+* **Twitch Chat Commands:**
+    * `gamestart`: Resets and starts a new game.
+    * `u`: Move ship Up.
+    * `d`: Move ship Down.
+    * `s1`: Trigger Standard Shot.
+    * `s2`: Trigger Burst Shot.
+    * `s3`: Trigger Spread Shot.
+    * `ult`: Trigger Ultimate Burst (60s Cooldown).
 
 ---
 
 ### 3. Twitch Mystical Tarot
 A mystical, interactive experience designed for streamers to provide live "readings" to their community. The game interprets viewer questions and generates a three-card spread (Past, Present, and Future) with narrative insights.
 
-*   **Genre:** Interactive Utility / Community Engagement
-*   **Key Features:**
-    *   **Automated Narratives:** Generates cohesive readings based on card meanings.
-    *   **Topic-Specific Insights:** Readings can be tailored to specific life categories (Love, Career, etc.).
-    *   **Cinematic Animations:** Smooth 3D card-flip transitions and overlay text.
-    *   **Cooldown Management:** Prevents spam by managing user and global cooldowns.
-*   **Twitch Chat Commands:**
-    *   **To start a reading:** Type `tarotdeck` followed by your question.
-    *   **To specify a category:**
-        *   `tarotbeginnings` (New starts)
-        *   `tarotcareer` (Work/Ambition)
-        *   `tarotmoney` (Finances)
-        *   `tarotlove` (Relationships)
-        *   `tarotfriendsfamily` (Social circles)
-        *   `tarothealth` (Wellness)
-        *   `tarothigherguidance` (Spiritual/Universe)
+* **Genre:** Interactive Utility / Community Engagement
+* **Key Features:**
+    * **Automated Narratives:** Generates cohesive readings based on card meanings.
+    * **Topic-Specific Insights:** Readings can be tailored to specific life categories (Love, Career, etc.).
+    * **Cinematic Animations:** Smooth 3D card-flip transitions and overlay text.
+    * **Cooldown Management:** Prevents spam by managing user and global cooldowns.
+* **Twitch Chat Commands:**
+    * **To start a reading:** Type `tarotdeck` followed by your question.
+    * **To specify a category:**
+        * `tarotbeginnings` (New starts)
+        * `tarotcareer` (Work/Ambition)
+        * `tarotmoney` (Finances)
+        * `tarotlove` (Relationships)
+        * `tarotfriendsfamily` (Social circles)
+        * `tarothealth` (Wellness)
+        * `tarothigherguidance` (Spiritual/Universe)
 
 ---
 
 ### 4. VRM AI Chatbot
 An advanced, interactive 3D companion designed to live directly on your stream. This companion uses Large Language Models (LLMs) to listen to your Twitch chat and respond in real-time with animated speech bubbles. 
 
-*   **Genre:** AI-Driven Interactive Avatar
-*   **Key Features:**
-    *   **Multi-Engine AI Support:** Connect via Google Gemini, Local Ollama, or a Remote API.
-    *   **3D Immersion:** Fully animated VRM model integration with dynamic facial/body expressions.
-    *   **Streamer Optimized:** Built-in transparency support for seamless OBS integration.
-    *   **Intelligent Constraints:** Hardcoded prompt reinforcement ensures the AI keeps replies concise and chat-friendly.
-*   **Twitch Chat Commands:**
-    *   `[Trigger] [Message]`: Asks the AI a question.
-    *   *Example:* `AI, tell me a joke!` (Note: Trigger word depends on your avatar's name).
+* **Genre:** AI-Driven Interactive Avatar
+* **Key Features:**
+    * **Multi-Engine AI Support:** Connect via Google Gemini, Local Ollama, or a Remote API.
+    * **3D Immersion:** Fully animated VRM model integration with dynamic facial/body expressions.
+    * **Streamer Optimized:** Built-in transparency support for seamless OBS integration.
+    * **Intelligent Constraints:** Hardcoded prompt reinforcement ensures the AI keeps replies concise and chat-friendly.
+* **Twitch Chat Commands:**
+    * `[Trigger] [Message]`: Asks the AI a question.
+    * *Example:* `AI, tell me a joke!` (Note: Trigger word depends on your avatar's name).
+
 ### (Note): Ollama
 * To prevent game lag, set Ollama to CPU-only, cap its usage at 5-10%, and allow for 6GB of extra RAM overhead: https://github.com/MohTecGames/TwitchGames/blob/main/Ollama/readme.txt
+
+---
+
+### 5. Twitch Media Overlay Pro
+A high-performance, professional-grade media engine designed to be used as an OBS Browser Source. It allows viewers to summon rich media (GIFs and Videos) directly into the stream with advanced moderation controls.
+
+* **Genre:** Interactive Stream Utility / Media Engine
+* **Key Features:**
+    * **Multi-Format Support:** Seamlessly handles Tenor GIFs, Klipy GIFs, and Klipy MP4 videos.
+    * **Advanced Permission Engine:** Supports complex role combinations (e.g., `mod,vip`) and strict whitelist/blacklist management via `.ini` files.
+    * **Smart Cooldowns:** Dual-layer protection (Global and Per-User) to prevent chat spam.
+    * **Zero-Code Customization:** Fully configurable via URL parameters (size, duration, permissions, etc.).
+    * **Audio Integration:** Native support for video audio playback via OBS audio routing.
+* **Twitch Chat Commands:**
+    * `tenor [id]`     -> Summon a Tenor GIF.
+    * `klipy [id]`     -> Summon a Klipy GIF.
+    * `klipyVid [id]`  -> Summon a Klipy Video (with Audio!).
+
 ---
 
 ## 🛠️ Technical Stack
 
-*   **Core:** HTML5, CSS3, JavaScript (ES6+).
-*   **Rendering:** HTML5 Canvas API for high-performance 2D graphics; Three.js & WebGL for 3D VRM rendering.
-*   **Twitch Integration:** ComfyJS for real-time chat parsing and EventSub support.
-*   **Storage:** `localStorage` for persistent high-score tracking.
+* **Core:** HTML5, CSS3, JavaScript (ES6+).
+* **Rendering:** HTML5 Canvas API for high-performance 2D graphics; Three.js & WebGL for 3D VRM rendering; Dynamic DOM injection for high-fidelity media playback.
+* **Twitch Integration:** ComfyJS for real-time chat parsing and EventSub support.
+* **Storage:** `localStorage` for persistent high-score tracking.
 
 ---
 
@@ -96,7 +114,7 @@ An advanced, interactive 3D companion designed to live directly on your stream. 
 
 **CREDITS:**
 
-*   **Avatars & Animations:** 3D Models and VRM animations provided by [OpenSourceAvatars.com](https://opensourceavatars.com).
-*   **Technical Tools:** Special thanks to the [fbx2vrma-converter](https://github.com/tk256ailab/fbx2vrma-converter) for providing the essential tools for seamless animation conversion.
-*   **Twitch Integration:** Utilizes Comfy.JS by Instafluff.
-*   **Tarot Meanings:** Inspired by "The Big Book of Tarot Meanings" by Sam Magdaleno.
+* **Avatars & Animations:** 3D Models and VRM animations provided by [OpenSourceAvatars.com](https://opensourceavatars.com).
+* **Technical Tools:** Special thanks to the [fbx2vrma-converter](https://github.com/tk256ailab/fbx2vrma-converter) for providing the essential tools for seamless animation conversion.
+* **Twitch Integration:** Utilizes Comfy.JS by Instafluff.
+* **Tarot Meanings:** Inspired by "The Big Book of Tarot Meanings" by Sam Magdaleno.
