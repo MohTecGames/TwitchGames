@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Twitch Media Overlay Pro (Smart Klipy)</title>
+    <title>Twitch Media Overlay Pro</title>
     
+    <!-- DEPENDENCY: Comfy.js -->
     <script src="https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js"></script>
 
     <style>
+        /* UI STYLING */
         body { 
             margin: 0; padding: 0; overflow: hidden; 
             background-color: rgba(0, 0, 0, 0); 
@@ -16,6 +18,7 @@
         }
         canvas { display: block; background-color: transparent; position: absolute; top: 0; left: 0; z-index: 1; }
 
+        /* Debug Dashboard Styling */
         .debug-box {
             position: absolute; left: 10px;
             background: rgba(0, 0, 0, 0.8); color: white;
@@ -27,10 +30,10 @@
 
         .debug-hidden { display: none !important; }
 
-        #config-box { top: 10px; border-color: #0ff; color: #0ff; }
-        #cooldown-box { top: 110px; border-color: #ff0; color: #ff0; }
-        #ini-box { top: 210px; border-color: #0f0; color: #0f0; }
-        #ban-box { top: 310px; border-color: #f00; color: #f00; }
+        #config-box { top: 10px; border: 1px solid #0ff; color: #0ff; }
+        #cooldown-box { top: 110px; border: 1px solid #ff0; color: #ff0; }
+        #ini-box { top: 210px; border: 1px solid #0f0; color: #0f0; }
+        #ban-box { top: 310px; border: 1px solid #f00; color: #f00; }
 
         .summoned-media {
             position: absolute; top: 50%; left: 50%;
@@ -42,6 +45,7 @@
 </head>
 <body id="gameBody">
 
+<!-- DEBUG DASHBOARD ELEMENTS -->
 <div id="config-box" class="debug-box">Config: Loading...</div>
 <div id="cooldown-box" class="debug-box">Cooldowns: None</div>
 <div id="ini-box" class="debug-box">Whitelist: Empty</div>
@@ -51,21 +55,23 @@
 
 <script>
     /**
-     * =================================================================================
-     * 1. CONFIGURATION
-     * =================================================================================
+     * ===========================================================================
+     * 1. CONFIGURATION & URL PARAMETERS
+     * ===========================================================================
      */
     const urlParams = new URLSearchParams(window.location.search);
+    
     const TWITCH_CHANNEL = urlParams.get('channel') || "MohTecGames"; 
     const PERM_SETTING = urlParams.get('perms') || 'everyone';
     const GIF_SIZE_VAL = parseFloat(urlParams.get('size')) || 30; 
     const GIF_DURATION = parseInt(urlParams.get('duration')) || 5000; 
     const UNIVERSAL_CD = parseInt(urlParams.get('u_cd')) || 10000; 
     const USER_CD = parseInt(urlParams.get('user_cd')) || 30000;   
+    
     const INI_URL = urlParams.get('ini_url') || './data/users.ini';
     const BAN_URL = urlParams.get('ban_url') || './data/ban.ini';
     
-    // IMPORTANT: You must add &klipy_key=YOUR_KEY to your OBS URL
+    // KLIPY API KEY (Required for Smart Command)
     const KLIPY_API_KEY = urlParams.get('klipy_key') || ""; 
     
     const DEBUG_MODE = urlParams.get('debug') === 'true';
@@ -79,12 +85,14 @@
     const iniEl = document.getElementById('ini-box');
     const banEl = document.getElementById('ban-box');
 
-    if (!DEBUG_MODE) debugElements.forEach(el => el.classList.add('debug-hidden'));
+    if (!DEBUG_MODE) {
+        debugElements.forEach(el => el.classList.add('debug-hidden'));
+    }
 
     /**
-     * =====================================================================================
-     * 2. STATE & LOADING
-     * =================================================================================
+     * ===========================================================================
+     * 2. STATE MANAGEMENT
+     * ===========================================================================
      */
     let lastGlobalSummonTime = 0;     
     let userLastSummonTimes = {};     
@@ -93,29 +101,35 @@
     let bannedUsers = [];             
     let banLoaded = false;            
 
-    function parseFile(text) { return text.split(/\r?\n/).map(line => line.trim()).filter(line => line.length > 0); }
+    /**
+     * ===========================================================================
+     * 3. FILE LOADING & PERMISSIONS
+     * ===========================================================================
+     */
+    function parseFile(text) {
+        return text.split(/\r?\n/).map(line => line.trim()).filter(line => line.length > 0);
+    }
 
     async function loadIniFile() {
         try {
             const response = await fetch(INI_URL);
-            if (response.ok) { allowedIniUsers = parseFile(await response.text()); iniLoaded = true; }
-        } catch (err) { console.error("Whitelist Error", err); }
+            if (!response.ok) throw new Error("Not Found");
+            allowedIniUsers = parseFile(await response.text());
+            iniLoaded = true;
+        } catch (err) { console.error("❌ Whitelist Error:", err.message); }
     }
 
     async function loadBanFile() {
         try {
             const response = await fetch(BAN_URL);
-            if (response.ok) { bannedUsers = parseFile(await response.text()); banLoaded = true; }
-        } catch (err) { console.error("Blacklist Error", err); }
+            if (!response.ok) throw new Error("Not Found");
+            bannedUsers = parseFile(await response.text());
+            banLoaded = true;
+        } catch (err) { console.error("❌ Blacklist Error:", err.message); }
     }
 
     Promise.all([loadIniFile(), loadBanFile()]);
 
-    /**
-     * =================================================================================
-     * 3. PERMISSIONS
-     * =======================================================================================
-     */
     function checkPermission(user, userState) {
         if (banLoaded && bannedUsers.includes(user)) return false;
         if (PERM_SETTING === 'ini') return (iniLoaded && allowedIniUsers.includes(user));
@@ -129,103 +143,83 @@
     }
 
     /**
-     * ======================================================================================
-     * 4. KLIPY ENGINE (THE SMART PART)
-     * =======================================================================================
+     * ===========================================================================
+     * 4. KLIPY SMART ENGINE
+     * ===========================================================================
      */
 
+    // Extracts "slug" from a URL
     function extractSlugFromUrl(url) {
-        console.log(`[DEBUG] Attempting to extract slug from: ${url}`);
         const regex = /klipy\.com\/(?:gifs|clips|static-memes)\/([^\/\s?#]+)/;
         const match = url.match(regex);
-        if (match) {
-            console.log(`[DEBUG] Slug found: ${match[1]}`);
-            return match[1];
-        }
-        console.warn("[DEBUG] Regex failed to find a slug in that URL.");
-        return null;
+        return match ? match[1] : null;
     }
 
+    // Fetches the actual media data from Klipy API
     async function fetchKlipyMedia(slug) {
         if (!KLIPY_API_KEY) {
-            console.error("❌ ERROR: KLIPY_API_KEY is missing! Check your OBS URL parameters.");
+            console.error("❌ ERROR: KLIPY_API_KEY is missing in URL parameters!");
             return null;
         }
 
-        console.log(`[API] Requesting Klipy data for slug: "${slug}"`);
         const endpoints = ['gifs', 'clips', 'static-memes'];
-        
         for (const type of endpoints) {
-            const apiUrl = `https://api.klipy.com/api/v1/${KLIPY_API_KEY}/${type}/items?slugs=${slug}`;
-            console.log(`[API] Trying endpoint: ${apiUrl}`);
-            
             try {
+                const apiUrl = `https://api.klipy.com/api/v1/${KLIPY_API_KEY}/${type}/items?slugs=${slug}`;
                 const response = await fetch(apiUrl);
-                console.log(`[API] Response Status: ${response.status} ${response.statusText}`);
-
                 if (response.status === 403) {
-                    console.error("❌ ERROR: 403 Forbidden. Your API Key is likely invalid or restricted.");
+                    console.error("❌ ERROR: 403 Forbidden. API Key is likely invalid.");
                     return null;
                 }
-                if (response.status === 404) {
-                    console.warn(`[API] 404 Not Found for type: ${type}`);
-                    continue; 
-                }
-
                 const json = await response.json();
                 if (json.result && json.data && json.data.data && json.data.data.length > 0) {
-                    console.log(`✅ SUCCESS: Found media via ${type} endpoint!`);
                     return json.data.data[0];
-                } else {
-                    console.warn(`[API] No data found in JSON response for ${type}`);
                 }
-            } catch (err) {
-                console.error(`❌ API Fetch Error (${type}):`, err.message);
-            }
+            } catch (e) { /* try next endpoint */ }
         }
         return null;
     }
 
+    // Handles the creation and removal of the media element
     function summonMedia(type, data) {
         let url = "";
         let el;
         let isVideo = false;
 
+        // CASE A: Direct ID/String (Old way)
         if (typeof data === 'string') {
             if (type === 'tenor') {
                 url = `https://c.tenor.com/${data}/tenor.gif`;
                 el = document.createElement('img');
-            } else if (type === 'klipy' || type === 'klipyvid') {
-                if (type === 'klipyvid') {
-                    url = `https://static.klipy.com/ii/${data}.mp4`;
-                    el = document.createElement('video');
-                    el.autoplay = true; el.playsInline = true; el.muted = false;
-                    isVideo = true;
-                } else {
-                    url = `https://static.klipy.com/ii/${data}.gif`;
-                    el = document.createElement('img');
-                }
-            }
-        } 
-        else if (typeof data === 'object' && data !== null) {
-            const file = data.file.md;
-            if (file.mp4) {
-                url = file.mp4;
+            } else if (type === 'klipy') {
+                url = `https://static.klipy.com/ii/${data}.gif`;
+                el = document.createElement('img');
+            } else if (type === 'klipyvid') {
+                url = `https://static.klipy.com/ii/${data}.mp4`;
                 el = document.createElement('video');
                 el.autoplay = true; el.playsInline = true; el.muted = false;
                 isVideo = true;
-            } else {
-                url = file.gif || file.webp;
+            }
+        } 
+        // CASE B: API Object (New Smart way - FIXED [object Object] bug)
+        else if (typeof data === 'object' && data !== null) {
+            const file = data.file.md;
+            if (file.mp4 && file.mp4.url) {
+                url = file.mp4.url;
+                el = document.createElement('video');
+                el.autoplay = true; el.playsInline = true; el.muted = false;
+                isVideo = true;
+            } else if (file.gif && file.gif.url) {
+                url = file.gif.url;
+                el = document.createElement('img');
+            } else if (file.webp && file.webp.url) {
+                url = file.webp.url;
                 el = document.createElement('img');
             }
         }
 
-        if (!el || !url) {
-            console.error("[BLOCK] Could not resolve media URL. Data was:", data);
-            return;
-        }
+        if (!el || !url) return;
 
-        console.log(`[SUMMON] Playing: ${url}`);
         el.src = url;
         el.className = 'summoned-media';
         el.style.width = `${GIF_SIZE_VAL}vw`;
@@ -254,9 +248,9 @@
     }
 
     /**
-     * =================================================================================
+     * ===========================================================================
      * 5. TWITCH INTEGRATION
-     * ===============================================================================
+     * ===========================================================================
      */
     ComfyJS.Init(TWITCH_CHANNEL);
 
@@ -265,53 +259,33 @@
         const now = Date.now();
         const parts = msg.split(/\s+/);
         
-        // 1. Get the first word and strip the "!" if it exists
+        // Clean command: strip "!" if it exists
         let command = parts[0].toLowerCase();
-        if (command.startsWith('!')) {
-            command = command.substring(1);
-        }
-        
-        const input = parts[1];
+        if (command.startsWith('!')) command = command.substring(1);
 
-        // Valid commands: klipyplay, klipy, tenor, klipyvid
+        const input = parts[1];
         const validCommands = ['klipyplay', 'klipy', 'tenor', 'klipyvid'];
 
         if (validCommands.includes(command) && input) {
-            console.log(`[CHAT] Command detected: ${command} | Input: ${input} | User: ${user}`);
+            
+            if (!checkPermission(user, userState)) return;
+            if (now - lastGlobalSummonTime < UNIVERSAL_CD) return;
+            if (now - (userLastSummonTimes[user] || 0) < USER_CD) return;
 
-            if (!checkPermission(user, userState)) {
-                console.warn(`[BLOCK] Permission denied for ${user}`);
-                return;
-            }
-
-            if (now - lastGlobalSummonTime < UNIVERSAL_CD) {
-                console.warn(`[BLOCK] Global Cooldown active.`);
-                return;
-            }
-
-            if (now - (userLastSummonTimes[user] || 0) < USER_CD) {
-                console.warn(`[BLOCK] User Cooldown active for ${user}`);
-                return;
-            }
-
-            // Logic for KlipyPlay (Smart)
+            // SMART COMMAND LOGIC
             if (command === 'klipyplay') {
                 let slug = input.startsWith('http') ? extractSlugFromUrl(input) : input;
-                
                 if (slug) {
+                    console.log(`[API] Fetching slug: ${slug}`);
                     const mediaData = await fetchKlipyMedia(slug);
                     if (mediaData) {
                         lastGlobalSummonTime = now;
                         userLastSummonTimes[user] = now;
                         summonMedia('klipy', mediaData);
-                    } else {
-                        console.error("[ERROR] KlipyPlay failed to find media.");
                     }
-                } else {
-                    console.error("[ERROR] KlipyPlay received invalid input.");
                 }
             } 
-            // Logic for old ID commands
+            // OLD COMMAND LOGIC
             else {
                 lastGlobalSummonTime = now;
                 userLastSummonTimes[user] = now;
@@ -321,13 +295,13 @@
     };
 
     /**
-     * =================================================================================
-     * 6. DEBUG & ENGINE
-     * ===================================================================================
+     * ===========================================================================
+     * 6. DEBUG & ENGINE LOOP
+     * ===========================================================================
      */
     setInterval(() => {
         if (!DEBUG_MODE) return;
-        configEl.innerHTML = `<b style="color:#fff">Config:</b><br>Ch: ${TWITCH_CHANNEL}<br>API Key: ${KLIPY_API_KEY ? '✅ OK' : '❌ MISSING'}`;
+        configEl.innerHTML = `<b style="color:#fff">Config:</b><br>Ch: ${TWITCH_CHANNEL}<br>API Key: ${KLIPY_API_KEY ? '✅' : '❌'}`;
         const now = Date.now();
         const globalRem = Math.max(0, Math.ceil((lastGlobalSummonTime + UNIVERSAL_CD - now) / 1000));
         cooldownEl.innerText = `Global: ${globalRem > 0 ? globalRem + 's' : 'READY'}`;
