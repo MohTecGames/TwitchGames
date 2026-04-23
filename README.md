@@ -108,11 +108,11 @@ A high-performance, professional-grade media engine designed to be used as an OB
  
 ## 🧰 Other tools
 
-
-* **Genre:** Arcade / Casual
 * **Key Features:**
     * Responsive design (scales to any screen size).
     * High-score tracking via `localStorage`.
+* **Genre:** Arcade / Casual
+
 * **Cinematic Text Generator:** Allows you to create text animations.
         ** Text Generator Link: https://mohtecgames.github.io/TwitchGames/OtherTools/TextAnimation.html
         ** URL maker Link: https://mohtecgames.github.io/TwitchGames/OtherTools/TextAnimationURLMaker.html
