@@ -64,8 +64,10 @@
     const GIF_DURATION = parseInt(urlParams.get('duration')) || 5000; 
     const UNIVERSAL_CD = parseInt(urlParams.get('u_cd')) || 10000; 
     const USER_CD = parseInt(urlParams.get('user_cd')) || 30000;   
+    
     const INI_URL = urlParams.get('ini_url') || './data/users.ini';
     const BAN_URL = urlParams.get('ban_url') || './data/ban.ini';
+    
     const KLIPY_API_KEY = urlParams.get('klipy_key') || ""; 
     const DEBUG_MODE = urlParams.get('debug') === 'true';
 
@@ -78,7 +80,9 @@
     const iniEl = document.getElementById('ini-box');
     const banEl = document.getElementById('ban-box');
 
-    if (!DEBUG_MODE) debugElements.forEach(el => el.classList.add('debug-hidden'));
+    if (!DEBUG_MODE) {
+        debugElements.forEach(el => el.classList.add('debug-hidden'));
+    }
 
     /**
      * 2. STATE MANAGEMENT
@@ -93,7 +97,9 @@
     /**
      * 3. FILE LOADING & PERMISSIONS
      */
-    function parseFile(text) { return text.split(/\r?\n/).map(line => line.trim()).filter(line => line.length > 0); }
+    function parseFile(text) {
+        return text.split(/\r?\n/).map(line => line.trim()).filter(line => line.length > 0);
+    }
 
     async function loadIniFile() {
         try {
@@ -128,8 +134,20 @@
     }
 
     /**
-     * 4. KLIPY SMART ENGINE
+     * 4. KLIPY SMART ENGINE & UTILS
      */
+
+    // RECURSIVE DEEP SEARCH: Digs through any object/nested object to find the first property named "url"
+    function deepFindUrl(obj) {
+        if (!obj || typeof obj !== 'object') return null;
+        if (typeof obj.url === 'string') return obj.url;
+        for (let key in obj) {
+            let found = deepFindUrl(obj[key]);
+            if (found) return found;
+        }
+        return null;
+    }
+
     function extractSlugFromUrl(url) {
         const regex = /klipy\.com\/(?:gifs|clips|static-memes)\/([^\/\s?#]+)/;
         const match = url.match(regex);
@@ -148,8 +166,10 @@
                 const response = await fetch(apiUrl);
                 if (response.status === 403) return null;
                 const json = await response.json();
-                if (json.result && json.data?.data?.length > 0) return json.data.data[0];
-            } catch (e) {}
+                if (json.result && json.data && json.data.data && json.data.data.length > 0) {
+                    return json.data.data[0];
+                }
+            } catch (e) { /* try next endpoint */ }
         }
         return null;
     }
@@ -159,12 +179,12 @@
         let el;
         let isVideo = false;
 
-        // CASE A: Direct ID/String
+        // --- PATH 1: DIRECT ID/STRING COMMANDS (The "Old Reliable" way) ---
         if (typeof data === 'string') {
             if (type === 'tenor') {
                 url = `https://c.tenor.com/${data}/tenor.gif`;
                 el = document.createElement('img');
-            } else if (type === 'klipy') {
+            } else if (type === 'klipygif') {
                 url = `https://static.klipy.com/ii/${data}.gif`;
                 el = document.createElement('img');
             } else if (type === 'klipyvid') {
@@ -174,34 +194,14 @@
                 isVideo = true;
             }
         } 
-        // CASE B: API Object (DEEP SEARCH VERSION)
+        // --- PATH 2: API OBJECT COMMANDS (The "Smart" way) ---
         else if (typeof data === 'object' && data !== null) {
-            const f = data.file;
-            if (!f) return;
-
-            // 1. Try to find a URL inside quality tiers (hd, md, sm)
-            const qualities = ['hd', 'md', 'sm'];
-            for (const q of qualities) {
-                if (f[q] && typeof f[q] === 'object' && f[q].url) {
-                    url = f[q].url;
-                    break;
-                }
-            }
-
-            // 2. Fallback: Check if the property itself is a string or has a .url (Legacy/Other)
-            if (!url) {
-                if (typeof f.mp4 === 'string') url = f.mp4;
-                else if (f.mp4?.url) url = f.mp4.url;
-                else if (typeof f.gif === 'string') url = f.gif;
-                else if (f.gif?.url) url = f.gif.url;
-                else if (typeof f.webp === 'string') url = f.webp;
-                else if (f.webp?.url) url = f.webp.url;
-            }
+            // Use the deep search to find the URL no matter how many layers of hd/md/sm exist
+            url = deepFindUrl(data);
 
             if (url) {
-                // Determine if we use <video> or <img>
-                // If data.type is 'clip' or URL ends in .mp4, use video
-                if (data.type === 'clip' || url.includes('.mp4')) {
+                // If the API tells us it's a clip, or the URL is an mp4, use video element
+                if (data.type === 'clip' || data.type === 'video' || url.includes('.mp4')) {
                     el = document.createElement('video');
                     el.autoplay = true; el.playsInline = true; el.muted = false;
                     el.loop = false;
@@ -213,7 +213,7 @@
         }
 
         if (!el || !url) {
-            console.error("❌ Klipy Error: Could not resolve URL.", data);
+            console.error("❌ summonMedia Error: Could not find media.", { type, data });
             return;
         }
 
@@ -224,9 +224,7 @@
 
         const startLifecycle = () => {
             document.body.appendChild(el);
-            if (isVideo) {
-                el.play().catch(e => console.warn("Autoplay blocked:", e));
-            }
+            if (isVideo) el.play().catch(e => console.warn("Autoplay prevented.", e));
 
             setTimeout(() => {
                 el.style.opacity = '0'; 
@@ -239,6 +237,7 @@
             }, GIF_DURATION);
         };
 
+        // Loading handlers
         if (el.tagName === 'IMG') {
             el.onload = startLifecycle;
             if (el.complete) startLifecycle();
@@ -253,32 +252,40 @@
      * 5. TWITCH INTEGRATION
      */
     ComfyJS.Init(TWITCH_CHANNEL);
+
     ComfyJS.onChat = async (user, message, userState) => {
         const msg = message.trim();
         const now = Date.now();
         const parts = msg.split(/\s+/);
+        
         let command = parts[0].toLowerCase();
         if (command.startsWith('!')) command = command.substring(1);
 
         const input = parts[1];
-        const validCommands = ['klipyplay', 'klipy', 'tenor', 'klipyvid'];
+        // Added 'klipygif' and 'klipyvid' to the valid list
+        const validCommands = ['klipyplay', 'klipygif', 'klipyvid', 'tenor'];
 
         if (validCommands.includes(command) && input) {
+            
             if (!checkPermission(user, userState)) return;
             if (now - lastGlobalSummonTime < UNIVERSAL_CD) return;
             if (now - (userLastSummonTimes[user] || 0) < USER_CD) return;
 
+            // SMART COMMAND (Uses API)
             if (command === 'klipyplay') {
                 let slug = input.startsWith('http') ? extractSlugFromUrl(input) : input;
                 if (slug) {
+                    console.log(`[API] Fetching slug: ${slug}`);
                     const mediaData = await fetchKlipyMedia(slug);
                     if (mediaData) {
                         lastGlobalSummonTime = now;
                         userLastSummonTimes[user] = now;
-                        summonMedia('klipy', mediaData);
+                        summonMedia('klipyplay', mediaData);
                     }
                 }
-            } else {
+            } 
+            // RELIABLE COMMANDS (Direct String ID)
+            else {
                 lastGlobalSummonTime = now;
                 userLastSummonTimes[user] = now;
                 summonMedia(command, input);
