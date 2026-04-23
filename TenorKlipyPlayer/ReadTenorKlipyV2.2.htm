@@ -71,6 +71,7 @@
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+
     const debugElements = document.querySelectorAll('.debug-box');
     const configEl = document.getElementById('config-box');
     const cooldownEl = document.getElementById('cooldown-box');
@@ -173,32 +174,34 @@
                 isVideo = true;
             }
         } 
-        // CASE B: API Object (SUPER ROBUST VERSION)
+        // CASE B: API Object (DEEP SEARCH VERSION)
         else if (typeof data === 'object' && data !== null) {
             const f = data.file;
-            if (!f) { console.error("❌ Klipy Error: 'file' property missing in object", data); return; }
+            if (!f) return;
 
-            // 1. Try to extract URL from various possible formats
-            if (typeof f === 'string') {
-                url = f;
-            } else {
-                // Check MP4 / Video formats
+            // 1. Try to find a URL inside quality tiers (hd, md, sm)
+            const qualities = ['hd', 'md', 'sm'];
+            for (const q of qualities) {
+                if (f[q] && typeof f[q] === 'object' && f[q].url) {
+                    url = f[q].url;
+                    break;
+                }
+            }
+
+            // 2. Fallback: Check if the property itself is a string or has a .url (Legacy/Other)
+            if (!url) {
                 if (typeof f.mp4 === 'string') url = f.mp4;
                 else if (f.mp4?.url) url = f.mp4.url;
-                
-                // Check GIF formats
                 else if (typeof f.gif === 'string') url = f.gif;
                 else if (f.gif?.url) url = f.gif.url;
-
-                // Check WebP formats
                 else if (typeof f.webp === 'string') url = f.webp;
                 else if (f.webp?.url) url = f.webp.url;
             }
 
             if (url) {
-                // 2. Determine if we should use <video> or <img>
-                // We use video if the type is 'clip' or if the URL explicitly contains .mp4
-                if (data.type === 'clip' || data.type === 'video' || url.includes('.mp4')) {
+                // Determine if we use <video> or <img>
+                // If data.type is 'clip' or URL ends in .mp4, use video
+                if (data.type === 'clip' || url.includes('.mp4')) {
                     el = document.createElement('video');
                     el.autoplay = true; el.playsInline = true; el.muted = false;
                     el.loop = false;
@@ -210,7 +213,7 @@
         }
 
         if (!el || !url) {
-            console.error("❌ Klipy Error: Could not resolve a valid URL from data:", data);
+            console.error("❌ Klipy Error: Could not resolve URL.", data);
             return;
         }
 
@@ -236,14 +239,12 @@
             }, GIF_DURATION);
         };
 
-        // Improved Loading logic
         if (el.tagName === 'IMG') {
             el.onload = startLifecycle;
             if (el.complete) startLifecycle();
         } else if (el.tagName === 'VIDEO') {
             el.oncanplaythrough = startLifecycle;
             if (el.readyState >= 3) startLifecycle();
-            // Safety fallback for video
             setTimeout(() => { if(el.parentNode && el.style.opacity !== '0') startLifecycle(); }, 3000);
         }
     }
