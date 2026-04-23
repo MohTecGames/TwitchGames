@@ -113,13 +113,6 @@ A high-performance, professional-grade media engine designed to be used as an OB
     * URL maker Link: https://mohtecgames.github.io/TwitchGames/OtherTools/TextAnimationURLMaker.html .
 * **Pending:** More tools to come.
 
-* **Cinematic Text Generator:** Allows you to create text animations.
-        ** Text Generator Link: https://mohtecgames.github.io/TwitchGames/OtherTools/TextAnimation.html
-        ** URL maker Link: https://mohtecgames.github.io/TwitchGames/OtherTools/TextAnimationURLMaker.html
-* **Pending:** More tools to come.
-
- 
-
 ---
 ## 📜 Copyright & Attribution
 
