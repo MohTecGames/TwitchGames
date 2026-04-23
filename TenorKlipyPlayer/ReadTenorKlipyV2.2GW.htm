@@ -184,7 +184,7 @@
             if (type === 'tenor') {
                 url = `https://c.tenor.com/${data}/tenor.gif`;
                 el = document.createElement('img');
-            } else if (type === 'klipygif') {
+            } else if (type === 'klipy') {
                 url = `https://static.klipy.com/ii/${data}.gif`;
                 el = document.createElement('img');
             } else if (type === 'klipyvid') {
@@ -262,8 +262,8 @@
         if (command.startsWith('!')) command = command.substring(1);
 
         const input = parts[1];
-        // Added 'klipygif' and 'klipyvid' to the valid list
-        const validCommands = ['klipyplay', 'klipygif', 'klipyvid', 'tenor'];
+        // Added 'klipy' and 'klipyvid' to the valid list
+        const validCommands = ['klipyplay', 'klipy', 'klipyvid', 'tenor'];
 
         if (validCommands.includes(command) && input) {
             
