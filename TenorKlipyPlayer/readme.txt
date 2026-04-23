@@ -19,8 +19,8 @@ URL Maker:
 [ CHAT COMMANDS - VIEWERS ]
 --------------------------------------------------------------------------
 tenor [id]     -> Summon a Tenor GIF.
-klipy [id]     -> Summon a Klipy GIF.
-klipyVid [id]  -> Summon a Klipy Video (with Audio!).
+klipyPlay [id/link]     -> Summon a Klipy GIF/Vid.
+ 
 
 --------------------------------------------------------------------------
 [ ADMIN SETUP: URL PARAMETERS ]
@@ -34,6 +34,7 @@ klipyVid [id]  -> Summon a Klipy Video (with Audio!).
                  Options: everyone, mod, vip, sub, mod,vip, mod_vip_sub, ini.
 ?ini_url=URL   -> Path to your Whitelist (.ini) file.
 ?ban_url=URL   -> Path to your Blacklist (.ini) file.
+?klipy_key=Key -> With no API key the script will not work
 
 [ 2. VISUALS & TIMING ]
 ------------------------------------------------------------------------
