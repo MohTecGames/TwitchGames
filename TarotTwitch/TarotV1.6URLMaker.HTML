@@ -1,6 +1,6 @@
- <!  
+<!--  
  /* 
- * =========================================================================
+ * ==========================================================================
  * COPYRIGHT & ATTRIBUTION NOTICE
  * =========================================================================
  * CREATED BY: MohTecGames
@@ -243,6 +243,24 @@
     </div>
 
     <script>
+        // Automatically populate the Base URL field on page load
+        window.onload = function() {
+            // 1. Get the current full URL
+            const currentUrl = window.location.href;
+            
+            // 2. Create a URL object to easily manipulate parts
+            const urlObj = new URL(currentUrl);
+            
+            // 3. Get the directory path (everything up to and including the last '/')
+            const directory = urlObj.origin + urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
+            
+            // 4. Define your target file
+            const targetFile = "TarotV1.6.HTML";
+            
+            // 5. Combine them and put them in the box
+            document.getElementById('baseUrl').value = directory + targetFile;
+        };
+
         function generateURL() {
             const baseUrl = document.getElementById('baseUrl').value.trim();
             if (!baseUrl) {
