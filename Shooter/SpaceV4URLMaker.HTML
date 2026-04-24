@@ -1,4 +1,4 @@
- <!  
+<!--  
  /* 
  * =========================================================================
  * COPYRIGHT & ATTRIBUTION NOTICE
@@ -93,21 +93,25 @@
         input:focus { border-color: var(--primary); }
 
         /* --- GRID LAYOUTS --- */
-        /* Player settings: 2 or 4 columns depending on width */
         .player-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 20px;
         }
 
-        /* Enemy settings: 1 to 3 columns depending on width */
         .enemy-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
         }
 
-        /* Small helper for X/Y side-by-side */
+        /* Added a grid class for Step 4 */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
         .row {
             display: flex;
             gap: 10px;
@@ -230,25 +234,26 @@
         <div class="section-title">Step 3: Enemy Customization (1-5)</div>
         <div class="enemy-grid" id="enemyContainer">
             <!-- JS will inject 5 enemy cards here -->
-        </div>
-<!-- ADD THIS SECTION INTO THE CONTAINER IN generator.html -->
+        </div
 
-<div class="section-title">Step 4: Global Game Settings</div>
-<div class="grid">
-    <div class="input-group">
-        <label>Enemy Speed Multiplier</label>
-        <input type="text" class="p-param" name="espeed" placeholder="1.0 (Default)">
-    </div>
-    <div class="input-group">
-        <label>Burst Count (Bullets per click)</label>
-        <input type="text" class="p-param" name="burst" placeholder="3 (Default)">
-    </div>
-    <div class="input-group">
-        <label>Spawn Interval (Frames)</label>
-        <input type="text" class="p-param" name="spawn" placeholder="60 (Default)">
-        <small style="font-size: 0.7rem; color: #666;">Lower = More Enemies</small>
-    </div>
-</div>
+        <!-- STEP 4: GLOBAL SETTINGS -->
+        <div class="section-title">Step 4: Global Game Settings</div>
+        <div class="settings-grid">
+            <div class="input-group">
+                <label>Enemy Speed Multiplier</label>
+                <input type="text" class="p-param" name="espeed" placeholder="1.0 (Default)">
+            </div>
+            <div class="input-group">
+                <label>Burst Count (Bullets per click)</label>
+                <input type="text" class="p-param" name="burst" placeholder="3 (Default)">
+            </div>
+            <div class="input-group">
+                <label>Spawn Interval (Frames)</label>
+                <input type="text" class="p-param" name="spawn" placeholder="60 (Default)">
+                <small style="font-size: 0.7rem; color: #666;">Lower = More Enemies</small>
+            </div>
+        </div>
+
     </div>
 
     <!-- RESULT AREA -->
@@ -261,6 +266,18 @@
     </div>
 
     <script>
+        // Automatically populate the Base URL field on page load
+        window.onload = function() {
+            const currentUrl = window.location.href;
+            const urlObj = new URL(currentUrl);
+            const directory = urlObj.origin + urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
+            
+            // Target file for the space shooter
+            const targetFile = "SpaceV4.HTML";
+            
+            document.getElementById('baseUrl').value = directory + targetFile;
+        };
+
         const enemyContainer = document.getElementById('enemyContainer');
 
         // Generate the 5 Enemy Input Cards
@@ -334,7 +351,13 @@
             copyText.setSelectionRange(0, 99999);
             navigator.clipboard.writeText(copyText.value);
             
-            alert("URL Copied to Clipboard!");
+            // Visual feedback
+            const btn = document.querySelector('.btn-copy');
+            const originalText = btn.innerText;
+            btn.innerText = "COPIED!";
+            setTimeout(() => {
+                btn.innerText = originalText;
+            }, 2000);
         }
     </script>
 </body>
