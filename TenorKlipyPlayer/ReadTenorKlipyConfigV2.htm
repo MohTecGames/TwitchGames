@@ -8,7 +8,7 @@
  * of this code, its logic, or its assets requires prior written approval 
  * from MohTecGames.
  * 
- * =========================================================================
+ * ==========================================================================
  */ -->
 <!DOCTYPE html>
 <html lang="en">
@@ -166,13 +166,20 @@
     </div>
 
     <script>
+        // Automatically populate the Base URL field on page load
+        window.onload = function() {
+            // This grabs the current URL of the page without any existing query parameters
+            const currentUrl = window.location.origin + window.location.pathname;
+            document.getElementById('baseUrl').value = currentUrl;
+        };
+
         function generateURL() {
             const baseUrl = document.getElementById('baseUrl').value.trim();
             if (!baseUrl) { alert("Please enter a Base URL!"); return; }
 
             const params = new URLSearchParams();
 
-            // 1. Handle Standard Inputs (Added klipy_key to this list)
+            // 1. Handle Standard Inputs
             const standardIds = [
                 'channel', 'klipy_key', 'size', 'duration', 
                 'u_cd', 'user_cd', 'ini_url', 'ban_url', 'debug'
