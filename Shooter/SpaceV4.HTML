@@ -32,7 +32,7 @@
     </style>
 </head>
 <body id="gameBody">
-<div id="chat-status">Initializing...</div>
+<div id="chat-status">Initializing...</div >
 <canvas id="gameCanvas"></canvas>
 
 <script>
@@ -54,6 +54,8 @@
     const E_SPEED_MULT = parseFloat(urlParams.get('espeed')) || 1;
     const BURST_COUNT_VAL = parseInt(urlParams.get('burst')) || 3;
     const SPAWN_INTERVAL = parseInt(urlParams.get('spawn')) || 60; 
+    // ULT_CD: Cooldown in seconds (default 60)
+    const ULT_COOLDOWN_MS = (parseInt(urlParams.get('ultcd')) || 60) * 1000;
 
     // --- 2. SHIP CONFIGURATION ---
     const SHIP_URL = urlParams.get('ship') || 'ShipHero.png';
@@ -200,7 +202,7 @@
             const angle = (i / (count - 1) - 0.5) * spreadAngle;
             bullets.push({ x: ship.x + ship.width, y: ship.y + ship.height / 2, vx: Math.cos(angle) * (BULLET_SPEED * 1.8), vy: Math.sin(angle) * (BULLET_SPEED * 1.8), radius: 6 });
         }
-        if (!bypassCooldown) cooldowns.ult1 = now + 60000;
+        if (!bypassCooldown) cooldowns.ult1 = now + ULT_COOLDOWN_MS;
     }
 
     function burst(fn) {
@@ -219,7 +221,10 @@
         else if (msg === 's3') burst(shoot2);
         else if (msg === 'ult') {
             const now = Date.now();
-            if (now >= cooldowns.ult1) { burst(() => ult1(true)); cooldowns.ult1 = now + 60000; }
+            if (now >= cooldowns.ult1) { 
+                burst(() => ult1(true)); 
+                cooldowns.ult1 = now + ULT_COOLDOWN_MS; 
+            }
         }
         chatMessages.push({ user: user, text: message });
         if (chatMessages.length > MAX_CHAT_LINES) chatMessages.shift();
@@ -377,4 +382,3 @@
 </script>
 </body>
 </html>
-
