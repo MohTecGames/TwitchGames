@@ -15,7 +15,7 @@
  * "The Big Book of Tarot Meanings: The Beginner's Guide to Reading the Cards"
  * (Paperback – 15 Mar. 2022) by Sam Magdaleno (Author).
  * 
- * -------------------------------------------------------------------------
+ * ------------------------------------------------------------------------
  * TECHNICAL CREDITS:
  * This project utilizes Comfy.JS for Twitch chat integration.
  * Created by Instafluff.
@@ -30,10 +30,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mystical Tarot URL Generator</title>
     <style>
-        /* Crucial: Ensures padding doesn't break width calculations */
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         :root {
             --primary: #d4af37; /* Gold */
@@ -57,10 +54,7 @@
         h1 { color: var(--primary); text-shadow: 0 0 15px rgba(212, 175, 55, 0.5); margin: 0 0 10px 0; }
         p.subtitle { color: #aaa; margin-bottom: 40px; text-align: center; font-style: italic; }
 
-        .container {
-            width: 100%;
-            max-width: 1000px;
-        }
+        .container { width: 100%; max-width: 1000px; }
 
         .section-title {
             border-left: 4px solid var(--secondary);
@@ -72,7 +66,6 @@
             letter-spacing: 2px;
         }
 
-        /* --- INPUT BOX STYLING --- */
         .input-group {
             background: var(--card-bg);
             padding: 15px;
@@ -101,7 +94,6 @@
 
         textarea { resize: vertical; min-height: 60px; font-family: sans-serif; }
 
-        /* --- CHECKBOX & STYLE ROW --- */
         .checkbox-row {
             display: flex;
             align-items: center;
@@ -115,10 +107,10 @@
         
         .checkbox-row input[type="checkbox"] { width: auto; cursor: pointer; }
 
-        /* --- STEP 5 STYLING GRID --- */
+        /* --- STEP 5 STYLING --- */
         .style-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
             gap: 20px;
         }
 
@@ -133,25 +125,29 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-top: 10px;
         }
 
-        .full-width { grid-column: span 2; }
+        /* Custom Input Containers */
+        .custom-input-wrapper {
+            grid-column: span 2;
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Color Picker Styling */
+        input[type="color"] {
+            height: 40px;
+            padding: 2px;
+            cursor: pointer;
+        }
 
         /* --- GRID LAYOUTS --- */
-        .timing-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
+        .timing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .identity-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
 
-        .identity-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        /* --- RESULT AREA --- */
         .result-area {
             position: sticky;
             bottom: 20px;
@@ -194,7 +190,6 @@
 
         .btn-generate { background: var(--primary); color: #000; }
         .btn-generate:hover { background: #fff; box-shadow: 0 0 15px var(--primary); }
-
         .btn-copy { background: var(--secondary); color: #fff; }
         .btn-copy:hover { background: #fff; color: var(--secondary); }
 
@@ -224,104 +219,140 @@
         <!-- STEP 2: TIMING & COOLDOWNS -->
         <div class="section-title">Step 2: Timing & Cooldowns (Seconds/MS)</div>
         <div class="timing-grid">
-            <div class="input-group">
-                <label>Global Cooldown (Sec)</label>
-                <input type="number" class="param-input" name="COOLDOWN_SECONDS" placeholder="1200">
-            </div>
-            <div class="input-group">
-                <label>User Cooldown (Sec)</label>
-                <input type="number" class="param-input" name="USER_COOLDOWN_SECONDS" placeholder="7200">
-            </div>
-            <div class="input-group">
-                <label>Reading Duration (MS)</label>
-                <input type="number" class="param-input" name="READING_DURATION_MS" placeholder="32000">
-            </div>
-            <div class="input-group">
-                <label>Card Flip Delay (MS)</label>
-                <input type="number" class="param-input" name="CARD_FLIP_DELAY_MS" placeholder="1200">
-            </div>
-            <div class="input-group">
-                <label>Read Flip Delay (MS)</label>
-                <input type="number" class="param-input" name="READ_FLIP_DELAY_MS" placeholder="12000">
-            </div>
+            <div class="input-group"><label>Global Cooldown (Sec)</label><input type="number" class="param-input" name="COOLDOWN_SECONDS"></div>
+            <div class="input-group"><label>User Cooldown (Sec)</label><input type="number" class="param-input" name="USER_COOLDOWN_SECONDS"></div>
+            <div class="input-group"><label>Reading Duration (MS)</label><input type="number" class="param-input" name="READING_DURATION_MS"></div>
+            <div class="input-group"><label>Card Flip Delay (MS)</label><input type="number" class="param-input" name="CARD_FLIP_DELAY_MS"></div>
+            <div class="input-group"><label>Read Flip Delay (MS)</label><input type="number" class="param-input" name="READ_FLIP_DELAY_MS"></div>
         </div>
 
         <!-- STEP 3: TWITCH IDENTITY -->
         <div class="section-title">Step 3: Twitch Identity</div>
         <div class="identity-grid">
-            <div class="input-group">
-                <label>Twitch Channel Name</label>
-                <input type="text" class="param-input" name="TWITCH_CHANNEL" placeholder="MohTecGames">
-            </div>
+            <div class="input-group"><label>Twitch Channel Name</label><input type="text" class="param-input" name="TWITCH_CHANNEL"></div>
         </div>
 
         <!-- STEP 4: STATUS BAR TEXT -->
         <div class="section-title">Step 4: Status Bar Text</div>
-        
         <div class="input-group">
             <label>Primary Status Text</label>
             <textarea class="param-input" name="STATUS_TEXT_PRIMARY" placeholder="Type TarotDeck followed by a question..."></textarea>
-            <label class="checkbox-row">
-                <input type="checkbox" class="blank-toggle" data-target="STATUS_TEXT_PRIMARY"> 
-                <span>Use blank space instead of text (&nbsp;%20)</span>
-            </label>
-            <div class="hint">Supports custom HTML tags (e.g., &lt;br&gt;, &lt;span&gt;, &lt;small&gt;). Please use them sparingly, as complex tags may be subject to rendering limitations. Text support emojis</div>
+            <label class="checkbox-row"><input type="checkbox" class="blank-toggle" data-target="STATUS_TEXT_PRIMARY"> <span>Use blank space instead of text (&nbsp;%20)</span></label>
+            <div class="hint">Supports custom HTML tags (e.g., &lt;br&gt;, &lt;span&gt;, &lt;small&gt;). Please use them sparingly, as complex tags may be subject to rendering limitations.</div>
         </div>
 
         <div class="input-group">
             <label>Commands Status Text</label>
             <textarea class="param-input" name="STATUS_TEXT_COMMANDS" placeholder="Commands: TarotBeginnings, TarotCareer..."></textarea>
-            <label class="checkbox-row">
-                <input type="checkbox" class="blank-toggle" data-target="STATUS_TEXT_COMMANDS"> 
-                <span>Use blank space instead of text (&nbsp;%20)</span>
-            </label>
-            <div class="hint">Supports custom HTML tags (e.g., &lt;br&gt;, &lt;span&gt;, &lt;small&gt;). Please use them sparingly, as complex tags may be subject to rendering limitations. Text support emojis</div>
+            <label class="checkbox-row"><input type="checkbox" class="blank-toggle" data-target="STATUS_TEXT_COMMANDS"> <span>Use blank space instead of text (&nbsp;%20)</span></label>
+            <div class="hint">Supports custom HTML tags (e.g., &lt;br&gt;, &lt;span&gt;, &lt;small&gt;). Please use them sparingly, as complex tags may be subject to rendering limitations.</div>
         </div>
 
         <!-- STEP 5: TEXT STYLING -->
         <div class="section-title">Step 5: Text Styling (Optional)</div>
         <div class="style-grid">
-            <!-- Styling for Primary Text -->
+            
+            <!-- Primary Style Card -->
             <div class="style-card">
                 <label>Primary Text Style</label>
                 <div class="style-controls">
-                    <select class="style-select" data-target="STATUS_TEXT_PRIMARY">
+                    <!-- Color Select -->
+                    <select class="style-select" data-target="STATUS_TEXT_PRIMARY" onchange="handleStyleToggle(this, 'color-custom-PRIMARY')">
                         <option value="">Default Color</option>
                         <option value="color: #d4af37;">Gold</option>
                         <option value="color: #9b59b6;">Purple</option>
                         <option value="color: #ffffff;">White</option>
+                        <option value="color: #c0c0c0;">Silver</option>
+                        <option value="color: #00ffff;">Cyan</option>
+                        <option value="color: #ffc0cb;">Pink</option>
+                        <option value="color: #00ff00;">Lime</option>
+                        <option value="color: #ffa500;">Orange</option>
+                        <option value="color: #ff0000;">Red</option>
+                        <option value="color: #87ceeb;">Sky Blue</option>
+                        <option value="custom">-- Custom Color --</option>
                     </select>
-                    <select class="style-select" data-target="STATUS_TEXT_PRIMARY">
+                    <!-- Size Select -->
+                    <select class="style-select" data-target="STATUS_TEXT_PRIMARY" onchange="handleStyleToggle(this, 'size-custom-PRIMARY')">
                         <option value="">Normal Size</option>
-                        <option value="font-size: 0.75rem;">Small</option>
-                        <option value="font-size: 1.2rem;">Large</option>
+                        <option value="font-size: 8px;">8px</option>
+                        <option value="font-size: 10px;">10px</option>
+                        <option value="font-size: 12px;">12px</option>
+                        <option value="font-size: 14px;">14px</option>
+                        <option value="font-size: 16px;">16px</option>
+                        <option value="font-size: 18px;">18px</option>
+                        <option value="font-size: 20px;">20px</option>
+                        <option value="font-size: 22px;">22px</option>
+                        <option value="font-size: 24px;">24px</option>
+                        <option value="font-size: 26px;">26px</option>
+                        <option value="font-size: 28px;">28px</option>
+                        <option value="font-size: 30px;">30px</option>
+                        <option value="custom">-- Custom Size --</option>
                     </select>
-                    <label class="checkbox-row"><input type="checkbox" class="style-check" data-target="STATUS_TEXT_PRIMARY" data-style="font-weight: bold;"> <b style="font-size: 0.7rem;">Bold</b></label>
-                    <label class="checkbox-row"><input type="checkbox" class="style-check" data-target="STATUS_TEXT_PRIMARY" data-style="text-shadow: 0 0 8px rgba(255,255,255,0.5);"> <b style="font-size: 0.7rem;">Glow</b></label>
+
+                    <!-- Custom Color Input -->
+                    <div class="custom-input-wrapper hidden" id="color-custom-PRIMARY">
+                        <input type="color" class="custom-color-picker" data-target="STATUS_TEXT_PRIMARY">
+                    </div>
+
+                    <!-- Custom Size Input -->
+                    <div class="custom-input-wrapper hidden" id="size-custom-PRIMARY">
+                        <input type="number" class="custom-size-input" data-target="STATUS_TEXT_PRIMARY" placeholder="px" min="1" max="100">
+                    </div>
+
+                    <!-- Checkboxes -->
+                    <label class="checkbox-row"><input type="checkbox" class="style-check" data-target="STATUS_TEXT_PRIMARY" data-style="font-weight: bold;"> <b>Bold</b></label>
+                    <label class="checkbox-row"><input type="checkbox" class="style-check" data-target="STATUS_TEXT_PRIMARY" data-style="text-shadow: 0 0 8px rgba(255,255,255,0.5);"> <b>Glow</b></label>
                 </div>
             </div>
 
-            <!-- Styling for Commands Text -->
+            <!-- Commands Style Card -->
             <div class="style-card">
                 <label>Commands Text Style</label>
                 <div class="style-controls">
-                    <select class="style-select" data-target="STATUS_TEXT_COMMANDS">
+                    <select class="style-select" data-target="STATUS_TEXT_COMMANDS" onchange="handleStyleToggle(this, 'color-custom-COMMANDS')">
                         <option value="">Default Color</option>
                         <option value="color: #d4af37;">Gold</option>
                         <option value="color: #9b59b6;">Purple</option>
                         <option value="color: #ffffff;">White</option>
+                        <option value="color: #c0c0c0;">Silver</option>
+                        <option value="color: #00ffff;">Cyan</option>
+                        <option value="color: #ffc0cb;">Pink</option>
+                        <option value="color: #00ff00;">Lime</option>
+                        <option value="color: #ffa500;">Orange</option>
+                        <option value="color: #ff0000;">Red</option>
+                        <option value="color: #87ceeb;">Sky Blue</option>
+                        <option value="custom">-- Custom Color --</option>
                     </select>
-                    <select class="style-select" data-target="STATUS_TEXT_COMMANDS">
+                    <select class="style-select" data-target="STATUS_TEXT_COMMANDS" onchange="handleStyleToggle(this, 'size-custom-COMMANDS')">
                         <option value="">Normal Size</option>
-                        <option value="font-size: 0.75rem;">Small</option>
-                        <option value="font-size: 1.2rem;">Large</option>
+                        <option value="font-size: 8px;">8px</option>
+                        <option value="font-size: 10px;">10px</option>
+                        <option value="font-size: 12px;">12px</option>
+                        <option value="font-size: 14px;">14px</option>
+                        <option value="font-size: 16px;">16px</option>
+                        <option value="font-size: 18px;">18px</option>
+                        <option value="font-size: 20px;">20px</option>
+                        <option value="font-size: 22px;">22px</option>
+                        <option value="font-size: 24px;">24px</option>
+                        <option value="font-size: 26px;">26px</option>
+                        <option value="font-size: 28px;">28px</option>
+                        <option value="font-size: 30px;">30px</option>
+                        <option value="custom">-- Custom Size --</option>
                     </select>
-                    <label class="checkbox-row"><input type="checkbox" class="style-check" data-target="STATUS_TEXT_COMMANDS" data-style="font-weight: bold;"> <b style="font-size: 0.7rem;">Bold</b></label>
-                    <label class="checkbox-row"><input type="checkbox" class="style-check" data-target="STATUS_TEXT_COMMANDS" data-style="text-shadow: 0 0 8px rgba(255,255,255,0.5);"> <b style="font-size: 0.7rem;">Glow</b></label>
+
+                    <div class="custom-input-wrapper hidden" id="color-custom-COMMANDS">
+                        <input type="color" class="custom-color-picker" data-target="STATUS_TEXT_COMMANDS">
+                    </div>
+                    <div class="custom-input-wrapper hidden" id="size-custom-COMMANDS">
+                        <input type="number" class="custom-size-input" data-target="STATUS_TEXT_COMMANDS" placeholder="px" min="1" max="100">
+                    </div>
+
+                    <label class="checkbox-row"><input type="checkbox" class="style-check" data-target="STATUS_TEXT_COMMANDS" data-style="font-weight: bold;"> <b>Bold</b></label>
+                    <label class="checkbox-row"><input type="checkbox" class="style-check" data-target="STATUS_TEXT_COMMANDS" data-style="text-shadow: 0 0 8px rgba(255,255,255,0.5);"> <b>Glow</b></label>
                 </div>
             </div>
-        </div>
 
+        </div>
     </div>
 
     <!-- RESULT AREA -->
@@ -331,7 +362,7 @@
             <button class="btn-generate" onclick="generateURL()">Generate URL</button>
             <button class="btn-copy" onclick="copyUrl()">Copy to Clipboard</button>
         </div>
-    </</div>
+    </div>
 
     <script>
         window.onload = function() {
@@ -342,12 +373,19 @@
             document.getElementById('baseUrl').value = directory + targetFile;
         };
 
+        // Toggles visibility of Custom Color/Size inputs
+        function handleStyleToggle(selectElement, wrapperId) {
+            const wrapper = document.getElementById(wrapperId);
+            if (selectElement.value === 'custom') {
+                wrapper.classList.remove('hidden');
+            } else {
+                wrapper.classList.add('hidden');
+            }
+        }
+
         function generateURL() {
             const baseUrl = document.getElementById('baseUrl').value.trim();
-            if (!baseUrl) {
-                alert("Please enter a Base URL first!");
-                return;
-            }
+            if (!baseUrl) { alert("Please enter a Base URL first!"); return; }
 
             const params = new URLSearchParams();
             const inputs = document.querySelectorAll('.param-input');
@@ -356,7 +394,7 @@
                 const name = input.name;
                 let val = input.value.trim();
                 
-                // 1. Check if user wants "Blank Space"
+                // 1. Blank Space Check
                 const blankCheckbox = document.querySelector(`.blank-toggle[data-target="${name}"]`);
                 if (blankCheckbox && blankCheckbox.checked) {
                     params.append(name, " ");
@@ -364,32 +402,79 @@
                 }
 
                 if (val !== "") {
-                    // 2. Apply Styling if text exists
                     let styleArray = [];
 
-                    // Get Dropdown Styles (Color and Size)
-                    const selects = document.querySelectorAll(`.style-select[data-target="${name}"]`);
-                    selects.forEach(sel => {
-                        if (sel.value !== "") styleArray.push(sel.value);
-                    });
-
-                    // Get Checkbox Styles (Bold and Glow)
-                    const checks = document.querySelectorAll(`.style-check[data-target="${name}"]`);
-                    checks.forEach(chk => {
-                        if (chk.checked) styleArray.push(chk.getAttribute('data-style'));
-                    });
-
-                    // 3. Wrap the text in a span if styles were selected
-                    if (styleArray.length > 0) {
-                        const styleString = styleArray.join(' ');
-                        val = `<span style='${styleString}'>${val}</span>`;
-                    }
-
-                    params.append(name, val);
+                    // 2. Handle Color
+                    const colorSelect = document.querySelector(`.style-select[data-target="${name}"][style*="color"]`); // Note: logic refined below
+                    // Finding the specific color select for this target
+                    const allSelects = document.querySelectorAll(`.style-select[data-target="${name}"]`);
+                    
+                    // Since we have two selects, we find them by position or type
+                    // Let's use a more robust way:
+                    const colorSel = Array.from(allSelects).find(s => s.options[s.selectedIndex].value !== 'custom' && s.options[s.selectedIndex].value.includes('color') || s.previousElementSibling?.tagName === 'LABEL' || true); 
+                    // Actually, let's just loop through all style elements associated with this name
+                    
+                    // Find Color Select
+                    const cSel = document.querySelector(`.style-select[data-target="${name}"]`); 
+                    // Wait, the two selects are identical in class. Let's refine selection logic.
+                    // We'll use the wrapper ID logic instead.
                 }
             });
 
-            const queryString = params.toString();
+            // RE-WRITTEN GENERATE LOGIC FOR COMPLEX STYLING
+            const paramsNew = new URLSearchParams();
+            inputs.forEach(input => {
+                const name = input.name;
+                let val = input.value.trim();
+
+                const blankCheckbox = document.querySelector(`.blank-toggle[data-target="${name}"]`);
+                if (blankCheckbox && blankCheckbox.checked) {
+                    paramsNew.append(name, " ");
+                    return;
+                }
+
+                if (val !== "") {
+                    let styleArray = [];
+
+                    // COLOR LOGIC
+                    // Find the color select (it's the first select in the style-controls div)
+                    const styleCard = input.closest('.input-group')?.nextElementSibling?.querySelector('.style-card') || 
+                                     document.querySelector('.style-card'); // Fallback
+                    
+                    // Let's find the specific card for this input
+                    // We'll use the relationship between Step 4 textareas and Step 5 cards
+                    let targetCard;
+                    if(name === "STATUS_TEXT_PRIMARY") targetCard = document.querySelector('.style-card');
+                    if(name === "STATUS_TEXT_COMMANDS") targetCard = document.querySelectorAll('.style-card')[1];
+
+                    if(targetCard) {
+                        // Color
+                        const cSel = targetCard.querySelector('select'); // First select
+                        const cPick = targetCard.querySelector('.custom-color-picker');
+                        if (cSel.value.includes('color:')) styleArray.push(cSel.value);
+                        else if (cSel.value === 'custom') styleArray.push(`color: ${cPick.value};`);
+
+                        // Size
+                        const sSel = targetCard.querySelectorAll('select')[1]; // Second select
+                        const sInp = targetCard.querySelector('.custom-size-input');
+                        if (sSel.value.includes('font-size:')) styleArray.push(sSel.value);
+                        else if (sSel.value === 'custom' && sInp.value) styleArray.push(`font-size: ${sInp.value}px;`);
+
+                        // Checkboxes (Bold/Glow)
+                        const checks = targetCard.querySelectorAll('.style-check');
+                        checks.forEach(chk => {
+                            if (chk.checked) styleArray.push(chk.getAttribute('data-style'));
+                        });
+                    }
+
+                    if (styleArray.length > 0) {
+                        val = `<span style='${styleArray.join(' ')}'>${val}</span>`;
+                    }
+                    paramsNew.append(name, val);
+                }
+            });
+
+            const queryString = paramsNew.toString();
             const finalUrl = baseUrl + (queryString ? "?" + queryString : "");
             document.getElementById('generatedUrl').value = finalUrl;
         }
@@ -398,14 +483,11 @@
             const copyText = document.getElementById("generatedUrl");
             if (!copyText.value) return;
             copyText.select();
-            copyText.setSelectionRange(0, 99999);
             navigator.clipboard.writeText(copyText.value);
-            
-            const originalText = document.querySelector('.btn-copy').innerText;
-            document.querySelector('.btn-copy').innerText = "COPIED!";
-            setTimeout(() => {
-                document.querySelector('.btn-copy').innerText = originalText;
-            }, 2000);
+            const btn = document.querySelector('.btn-copy');
+            const originalText = btn.innerText;
+            btn.innerText = "COPIED!";
+            setTimeout(() => btn.innerText = originalText, 2000);
         }
     </script>
 </body>
