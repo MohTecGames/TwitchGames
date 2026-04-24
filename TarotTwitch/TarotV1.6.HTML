@@ -156,7 +156,7 @@
     const CARD_FLIP_DELAY_MS = getParam("CARD_FLIP_DELAY_MS", 1200);
     const READ_FLIP_DELAY_MS = getParam("READ_FLIP_DELAY_MS", 12000); 
     
-    const STATUS_TEXT_PRIMARY = getParam("STATUS_TEXT_PRIMARY", "Type TarotDeck followed by a question or a specific category <br>");
+    const STATUS_TEXT_PRIMARY = getParam("STATUS_TEXT_PRIMARY", "Type TarotDeck followed by a question or a specific category");
     const STATUS_TEXT_COMMANDS = getParam("STATUS_TEXT_COMMANDS", "<small style='font-size: 11px;'>Commands: TarotBeginnings, TarotCareer, TarotMoney <br> TarotLove, TarotFriendsFamily, TarotHealth, TarotHigherGuidance</small>");
 
     const CARD_BACK_IMAGE = "Cards/Back.jpg"; 
@@ -9685,7 +9685,7 @@
         }
 
         if (gameState === "WAITING") {
-            statusBar.innerHTML =  STATUS_TEXT_PRIMARY + STATUS_TEXT_COMMANDS;
+            statusBar.innerHTML =  STATUS_TEXT_PRIMARY + "<br>" + STATUS_TEXT_COMMANDS;
         } 
         else if (gameState === "IDLE") {
             const mins = Math.floor(timer / 60);
