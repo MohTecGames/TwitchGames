@@ -223,6 +223,18 @@
     </div>
 
     <script>
+        // Automatically populate the Base URL field on page load
+        window.onload = function() {
+            const currentUrl = window.location.href;
+            const urlObj = new URL(currentUrl);
+            const directory = urlObj.origin + urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
+            
+            // Target file for the AI Chat
+            const targetFile = "Ai-Chat-VRMV1.2.htm";
+            
+            document.getElementById('baseUrl').value = directory + targetFile;
+        };
+
         function toggleModeInputs() {
             const mode = document.getElementById('api_type').value;
             document.getElementById('google-inputs').style.display = (mode === 'google') ? 'flex' : 'none';
@@ -267,7 +279,13 @@
             copyText.setSelectionRange(0, 99999);
             navigator.clipboard.writeText(copyText.value);
             
-            alert("URL Copied to Clipboard!");
+            // Visual feedback
+            const btn = document.querySelector('.btn-copy');
+            const originalText = btn.innerText;
+            btn.innerText = "COPIED!";
+            setTimeout(() => {
+                btn.innerText = originalText;
+            }, 2000);
         }
     </script>
 </body>
