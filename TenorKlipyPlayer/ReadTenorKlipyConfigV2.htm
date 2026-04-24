@@ -117,7 +117,7 @@
                 <label class="checkbox-item"><input type="checkbox" class="perm-check" value="vip"> VIP</label>
                 <label class="checkbox-item"><input type="checkbox" class="perm-check" value="sub"> Subscriber</label>
             </div>
-            <div class="hint">Note: Checking 'everyone' overrides others.</div>
+            <div class="hint">Note: Checking 'everyone' overrides others.</div}
         </div>
         <div class="input-group" style="margin-top:10px;">
             <label>Strict Mode (Override Roles)</label>
@@ -168,9 +168,21 @@
     <script>
         // Automatically populate the Base URL field on page load
         window.onload = function() {
-            // This grabs the current URL of the page without any existing query parameters
-            const currentUrl = window.location.origin + window.location.pathname;
-            document.getElementById('baseUrl').value = currentUrl;
+            // 1. Get the current full URL
+            const currentUrl = window.location.href;
+            
+            // 2. Create a URL object to easily manipulate parts
+            const urlObj = new URL(currentUrl);
+            
+            // 3. Get the directory path (everything up to and including the last '/')
+            // Example: .../TenorKlipyPlayer/ReadTenorKlipyConfigV2.htm -> .../TenorKlipyPlayer/
+            const directory = urlObj.origin + urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
+            
+            // 4. Define your target file
+            const targetFile = "ReadTenorKlipyV3.htm";
+            
+            // 5. Combine them and put them in the box
+            document.getElementById('baseUrl').value = directory + targetFile;
         };
 
         function generateURL() {
