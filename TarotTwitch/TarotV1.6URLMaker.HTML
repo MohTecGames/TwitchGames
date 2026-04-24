@@ -86,7 +86,7 @@
 
         label { font-size: 0.75rem; color: #d4af37; text-transform: uppercase; letter-spacing: 1px; }
 
-        input, textarea {
+        input, textarea, select {
             background: #111;
             border: 1px solid #333;
             color: white;
@@ -97,11 +97,11 @@
             width: 100%;
         }
 
-        input:focus, textarea:focus { border-color: var(--primary); }
+        input:focus, textarea:focus, select:focus { border-color: var(--primary); }
 
         textarea { resize: vertical; min-height: 60px; font-family: sans-serif; }
 
-        /* --- NEW: CHECKBOX STYLING --- */
+        /* --- CHECKBOX & STYLE ROW --- */
         .checkbox-row {
             display: flex;
             align-items: center;
@@ -113,10 +113,30 @@
             user-select: none;
         }
         
-        .checkbox-row input[type="checkbox"] {
-            width: auto;
-            cursor: pointer;
+        .checkbox-row input[type="checkbox"] { width: auto; cursor: pointer; }
+
+        /* --- STEP 5 STYLING GRID --- */
+        .style-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
         }
+
+        .style-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px dashed var(--border);
+        }
+
+        .style-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .full-width { grid-column: span 2; }
 
         /* --- GRID LAYOUTS --- */
         .timing-grid {
@@ -181,7 +201,7 @@
         .hint { font-size: 0.7rem; color: #777; margin-top: 4px; }
 
         @media (max-width: 600px) {
-            .timing-grid, .identity-grid { grid-template-columns: 1fr; }
+            .timing-grid, .identity-grid, .style-grid { grid-template-columns: 1fr; }
             .result-area { position: relative; bottom: 0; }
         }
     </style>
@@ -245,7 +265,7 @@
                 <input type="checkbox" class="blank-toggle" data-target="STATUS_TEXT_PRIMARY"> 
                 <span>Use blank space instead of text (&nbsp;%20)</span>
             </label>
-            <div class="hint">Supports HTML like &lt;br&gt; or &lt;small&gt;.</div>
+            <div class="hint">Supports custom HTML tags (e.g., &lt;br&gt;, &lt;span&gt;, &lt;small&gt;). Please use them sparingly, as complex tags may be subject to rendering limitations. Text support emojis</div>
         </div>
 
         <div class="input-group">
@@ -255,7 +275,51 @@
                 <input type="checkbox" class="blank-toggle" data-target="STATUS_TEXT_COMMANDS"> 
                 <span>Use blank space instead of text (&nbsp;%20)</span>
             </label>
-            <div class="hint">Supports HTML like &lt;br&gt; or &lt;small&gt;.</div>
+            <div class="hint">Supports custom HTML tags (e.g., &lt;br&gt;, &lt;span&gt;, &lt;small&gt;). Please use them sparingly, as complex tags may be subject to rendering limitations. Text support emojis</div>
+        </div>
+
+        <!-- STEP 5: TEXT STYLING -->
+        <div class="section-title">Step 5: Text Styling (Optional)</div>
+        <div class="style-grid">
+            <!-- Styling for Primary Text -->
+            <div class="style-card">
+                <label>Primary Text Style</label>
+                <div class="style-controls">
+                    <select class="style-select" data-target="STATUS_TEXT_PRIMARY">
+                        <option value="">Default Color</option>
+                        <option value="color: #d4af37;">Gold</option>
+                        <option value="color: #9b59b6;">Purple</option>
+                        <option value="color: #ffffff;">White</option>
+                    </select>
+                    <select class="style-select" data-target="STATUS_TEXT_PRIMARY">
+                        <option value="">Normal Size</option>
+                        <option value="font-size: 0.75rem;">Small</option>
+                        <option value="font-size: 1.2rem;">Large</option>
+                    </select>
+                    <label class="checkbox-row"><input type="checkbox" class="style-check" data-target="STATUS_TEXT_PRIMARY" data-style="font-weight: bold;"> <b style="font-size: 0.7rem;">Bold</b></label>
+                    <label class="checkbox-row"><input type="checkbox" class="style-check" data-target="STATUS_TEXT_PRIMARY" data-style="text-shadow: 0 0 8px rgba(255,255,255,0.5);"> <b style="font-size: 0.7rem;">Glow</b></label>
+                </div>
+            </div>
+
+            <!-- Styling for Commands Text -->
+            <div class="style-card">
+                <label>Commands Text Style</label>
+                <div class="style-controls">
+                    <select class="style-select" data-target="STATUS_TEXT_COMMANDS">
+                        <option value="">Default Color</option>
+                        <option value="color: #d4af37;">Gold</option>
+                        <option value="color: #9b59b6;">Purple</option>
+                        <option value="color: #ffffff;">White</option>
+                    </select>
+                    <select class="style-select" data-target="STATUS_TEXT_COMMANDS">
+                        <option value="">Normal Size</option>
+                        <option value="font-size: 0.75rem;">Small</option>
+                        <option value="font-size: 1.2rem;">Large</option>
+                    </select>
+                    <label class="checkbox-row"><input type="checkbox" class="style-check" data-target="STATUS_TEXT_COMMANDS" data-style="font-weight: bold;"> <b style="font-size: 0.7rem;">Bold</b></label>
+                    <label class="checkbox-row"><input type="checkbox" class="style-check" data-target="STATUS_TEXT_COMMANDS" data-style="text-shadow: 0 0 8px rgba(255,255,255,0.5);"> <b style="font-size: 0.7rem;">Glow</b></label>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -267,10 +331,9 @@
             <button class="btn-generate" onclick="generateURL()">Generate URL</button>
             <button class="btn-copy" onclick="copyUrl()">Copy to Clipboard</button>
         </div>
-    </div>
+    </</div>
 
     <script>
-        // Automatically populate the Base URL field on page load
         window.onload = function() {
             const currentUrl = window.location.href;
             const urlObj = new URL(currentUrl);
@@ -287,37 +350,53 @@
             }
 
             const params = new URLSearchParams();
-
-            // Get all inputs with class 'param-input'
             const inputs = document.querySelectorAll('.param-input');
             
             inputs.forEach(input => {
                 const name = input.name;
-                const val = input.value.trim();
+                let val = input.value.trim();
                 
-                // Check if there is a corresponding "blank toggle" checkbox for this specific input
+                // 1. Check if user wants "Blank Space"
                 const blankCheckbox = document.querySelector(`.blank-toggle[data-target="${name}"]`);
-                const isBlankRequested = blankCheckbox && blankCheckbox.checked;
-
-                if (isBlankRequested) {
-                    // If checkbox is checked, force a single space (which becomes %20 in URL)
+                if (blankCheckbox && blankCheckbox.checked) {
                     params.append(name, " ");
-                } else if (val !== "") {
-                    // Otherwise, if there is text, append the text
+                    return; 
+                }
+
+                if (val !== "") {
+                    // 2. Apply Styling if text exists
+                    let styleArray = [];
+
+                    // Get Dropdown Styles (Color and Size)
+                    const selects = document.querySelectorAll(`.style-select[data-target="${name}"]`);
+                    selects.forEach(sel => {
+                        if (sel.value !== "") styleArray.push(sel.value);
+                    });
+
+                    // Get Checkbox Styles (Bold and Glow)
+                    const checks = document.querySelectorAll(`.style-check[data-target="${name}"]`);
+                    checks.forEach(chk => {
+                        if (chk.checked) styleArray.push(chk.getAttribute('data-style'));
+                    });
+
+                    // 3. Wrap the text in a span if styles were selected
+                    if (styleArray.length > 0) {
+                        const styleString = styleArray.join(' ');
+                        val = `<span style='${styleString}'>${val}</span>`;
+                    }
+
                     params.append(name, val);
                 }
             });
 
             const queryString = params.toString();
             const finalUrl = baseUrl + (queryString ? "?" + queryString : "");
-            
             document.getElementById('generatedUrl').value = finalUrl;
         }
 
         function copyUrl() {
             const copyText = document.getElementById("generatedUrl");
             if (!copyText.value) return;
-            
             copyText.select();
             copyText.setSelectionRange(0, 99999);
             navigator.clipboard.writeText(copyText.value);
