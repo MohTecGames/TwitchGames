@@ -4,7 +4,7 @@ A collection of high-performance, web-based interactive experiences. This suite 
 
 ## 🎮 Interactive Experiences & Utilities
 
-[https://mohtecgames.github.io/TwitchGames/](https://mohtecgames.github.io/TwitchGames/)
+https://mohtec.dev
 
 ### 1. Flappy Bird Fullscreen Pro
 A polished, responsive, and fullscreen implementation of the classic arcade sensation. This version is optimized for both desktop and mobile browsers, featuring smooth physics and a parallax-style background.
@@ -109,8 +109,8 @@ A high-performance, professional-grade media engine designed to be used as an OB
 ## 🧰 Other tools
 
 * **Cinematic Text Generator:**
-    * Text Generator Link: https://mohtecgames.github.io/TwitchGames/OtherTools/TextAnimation.html .
-    * URL maker Link: https://mohtecgames.github.io/TwitchGames/OtherTools/TextAnimationURLMaker.html .
+    * Text Generator Link: https://mohtec.dev/OtherTools/TextAnimation.html . 
+    * URL maker Link: https://mohtec.dev/OtherTools/TextAnimationURLMaker.html .
 * **Pending:** More tools to come.
 
 ---
