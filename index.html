@@ -123,7 +123,7 @@
             font-weight: bold;
         }
 
-        /* --- GAME GRID (Configured for 6 per line) --- */
+        /* --- GAME GRID --- */
         .game-grid {
             display: grid;          
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -253,11 +253,76 @@
             z-index: 2;
         }
 
+        /* --- NEW: ABOUT & CONTACT SECTION --- */
+        .info-section {
+            width: 100%;
+            max-width: 1000px;
+            margin-bottom: 100px; /* Space at bottom of page */
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .info-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            color: white;
+            text-align: left;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .info-card h3 {
+            color: var(--accent-color);
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .info-card p {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .contact-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .btn-contact {
+            text-decoration: none;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .btn-contact:hover {
+            background: var(--accent-color);
+            color: #000;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 219, 58, 0.4);
+        }
+
         /* Mobile Responsive */
         @media (max-width: 600px) {
             h1 { font-size: 2.5rem; }
             .game-grid { grid-template-columns: 1fr; }
             .video-showcase { margin-bottom: 30px; }
+            .info-card { padding: 25px; }
         }
     </style>
 </head>
@@ -283,8 +348,8 @@
                 <div class="game-desc">A high-speed physics challenge.</div>
                 <div class="card-actions">
                     <a href="Flappy/FlappyV2.1.HTML" class="btn btn-play">Play</a>
-                </div >
-            </div >
+                </div>
+            </div>
 
             <!-- GAME 2 -->
             <div class="game-card">
@@ -294,8 +359,8 @@
                 <div class="card-actions">
                     <a href="Shooter/SpaceV4.HTML" class="btn btn-play">Play</a>
                     <a href="Shooter/SpaceV4URLMaker.HTML" class="btn btn-config">⚙️ Config</a>
-                </div >
-            </div >
+                </div>
+            </div>
 
             <!-- GAME 3 -->
             <div class="game-card">
@@ -304,8 +369,8 @@
                 <div class="game-desc">A peaceful, mystical reading experience.</div>
                 <div class="card-actions">
                     <a href="TarotTwitch/TarotV1.6-StandAlone.HTML" class="btn btn-play">Play</a>
-                </div >
-            </div >
+                </div>
+            </div>
 
             <!-- GAME 4 -->
             <div class="game-card">
@@ -315,8 +380,8 @@
                 <div class="card-actions">
                     <a href="TarotTwitch/TarotV1.6.HTML" class="btn btn-play">Play</a>
                     <a href="TarotTwitch/TarotV1.6URLMaker.HTML" class="btn btn-config">⚙️ Config</a>
-                </div >
-            </div >
+                </div>
+            </div>
 
             <!-- GAME 5 -->
             <div class="game-card">
@@ -326,10 +391,10 @@
                 <div class="card-actions">
                     <a href="ChatBotVRM/Ai-Chat-VRMV1.2.htm?api_type=local" class="btn btn-play">Play</a>
                     <a href="ChatBotVRM/Ai-configV1.htm" class="btn btn-config">⚙️ Config</a>
-                </div >
-            </div >
+                </div>
+            </div>
 
-            <!-- NEW GAME 6: MEDIA OVERLAY PRO -->
+            <!-- GAME 6 -->
             <div class="game-card">
                 <div class="game-icon">🎬</div>
                 <div class="game-title">Media Overlay</div>
@@ -337,20 +402,20 @@
                 <div class="card-actions">
                     <a href="TenorKlipyPlayer/ReadTenorKlipyV3.htm?&debug=true&klipy_key=Get_A_Key_From_Klipy" class="btn btn-play">Test</a>
                     <a href="TenorKlipyPlayer/ReadTenorKlipyConfigV2.htm" class="btn btn-config">⚙️ Config</a>
-                </div >
-            </div >
+                </div>
+            </div>
 
-            <!-- GAME 7 (Placeholder) -->
+            <!-- GAME 7 -->
             <div class="game-card">
                 <div class="game-icon">🎮</div>
                 <div class="game-title">Coming Soon</div>
                 <div class="game-desc">More worlds are being built.</div>
                 <div class="card-actions">
                     <a href="#" class="btn btn-play" style="opacity: 0.5; cursor: default;">Locked</a>
-                </div >
-            </div >
+                </div>
+            </div>
 
-        </div >
+        </div>
 
         <!-- VIDEO SECTION -->
         <div class="video-showcase">
@@ -360,9 +425,35 @@
                     <source src="demo-video.mp4" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
-            </div >
-        </div >
-    </div >
+            </div>
+        </div>
+
+        <!-- NEW: ABOUT & CONTACT SECTION -->
+        <div class="info-section">
+            <div class="section-label">The Creator</div>
+            <div class="info-grid">
+                
+                <!-- About Card -->
+                <div class="info-card">
+                    <h3>About Moh</h3>
+                    <p>I'm a tech professional driven by curiosity and the joy of creating. I love building interactive web experiences ranging from physics based challenges to AI driven companions.</p>
+                    <p>My goal is to blend technology with creativity to build digital worlds you can explore and enjoy.</p>
+                </div>
+
+                <!-- Contact Card -->
+                <div class="info-card">
+                    <h3>Get in Touch</h3>
+                    <p>Have a project in mind, a question about a game, or just want to talk tech? I'm always open to new ideas and collaborations!</p>
+                    <div class="contact-links">
+                        <a href="https://www.linkedin.com/in/mohammed-alkhateeb-bb297370" target="_blank" class="btn-contact">LinkedIn</a>
+                        <a href="mailto:moh@mohtec.com" class="btn-contact">Email Me</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
     
     <script>
         // --- CLOUD GENERATOR ---
