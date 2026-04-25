@@ -75,9 +75,6 @@ An advanced, interactive 3D companion designed to live directly on your stream. 
     * `[Trigger] [Message]`: Asks the AI a question.
     * *Example:* `AI, tell me a joke!` (Note: Trigger word depends on your avatar's name).
 
-### (Note): Ollama
-* To prevent game lag, set Ollama to CPU-only, cap its usage at 5-10%, and allow for 6GB of extra RAM overhead: https://github.com/MohTecGames/TwitchGames/blob/main/Ollama/readme.txt
-
 ---
 
 ### 5. Twitch Media Overlay
@@ -112,6 +109,9 @@ A high-performance, professional-grade media engine designed to be used as an OB
     * Text Generator Link: https://mohtec.dev/OtherTools/TextAnimation.html . 
     * URL maker Link: https://mohtec.dev/OtherTools/TextAnimationURLMaker.html .
 * **Pending:** More tools to come.
+
+### (Note): Ollama
+* To prevent game lag, set Ollama to CPU-only, cap its usage at 5-10%, and allow for 6GB of extra RAM overhead: https://github.com/MohTecGames/TwitchGames/blob/main/Ollama/readme.txt
 
 ---
 ## 📜 Copyright & Attribution
