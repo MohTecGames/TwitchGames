@@ -1,3 +1,16 @@
+ <!  
+ /* 
+ * =========================================================================
+ * COPYRIGHT & ATTRIBUTION NOTICE
+ * =========================================================================
+ * CREATED BY: MohTecGames
+ * 
+ * NOTICE: This work is protected. Any reproduction, distribution, or use 
+ * of this code, its logic, or its assets requires prior written approval 
+ * from MohTecGames.
+ * =========================================================================
+ */
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,7 +30,7 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    let birdY, birdVelocity, pipes, butterflies, frameCount, score, gameOver, highScore;
+    let birdY, birdVelocity, pipes, butterflies, balls, frameCount, score, gameOver, highScore;
     let clouds = [];
     let hills = [];
 
@@ -26,7 +39,6 @@
     const BASE_HEIGHT = 480;
 
     // --- DIFFICULTY & GAMEPLAY SETTINGS ---
-    // Reduced this so it doesn't exceed screen width when scaled
     const PIPE_SPAWN_DISTANCE = 320;           
     const PIPE_GAP_BASE = 130;             
     const PIPE_WIDTH_BASE = 50;            
@@ -53,6 +65,7 @@
         birdVelocity = 0;
         pipes = [];
         butterflies = [];
+        balls = []; 
         frameCount = 0;
         score = 0;
         gameOver = false;
@@ -103,6 +116,15 @@
         });
     }
 
+    function spawnBall() {
+        balls.push({
+            x: viewWidth + 50 * scale,
+            y: Math.random() * (viewHeight * 0.6) + (viewHeight * 0.2),
+            size: 7.5 * scale, // HALVED SIZE (was 15)
+            rotation: 0
+        });
+    }
+
     function drawBird(x, y) {
         ctx.save();
         ctx.translate(x, y);
@@ -148,22 +170,49 @@
     function drawButterfly(b) {
         ctx.save();
         ctx.translate(b.x, b.y);
-        ctx.fillStyle = "#00ced1"; // Blue-Green (Dark Turquoise)
+        ctx.fillStyle = "#00ced1"; 
         ctx.strokeStyle = "#008b8b";
         
         let flap = Math.sin(frameCount * 0.2 + b.phase);
-        let wingHeight = Math.max(0.1, Math.abs(flap)); // Prevent negative height
+        let wingHeight = Math.max(0.1, Math.abs(flap)); 
         
-        // Left wing
         ctx.beginPath();
         ctx.ellipse(-b.size/2, 0, b.size/2, b.size * wingHeight, 0, 0, Math.PI * 2);
         ctx.fill(); ctx.stroke();
         
-        // Right wing
         ctx.beginPath();
         ctx.ellipse(b.size/2, 0, b.size/2, b.size * wingHeight, 0, 0, Math.PI * 2);
         ctx.fill(); ctx.stroke();
         
+        ctx.restore();
+    }
+
+    function drawBall(b) {
+        ctx.save();
+        ctx.translate(b.x, b.y);
+        ctx.rotate(b.rotation);
+        
+        ctx.fillStyle = "#ff0000";
+        ctx.strokeStyle = "#8b0000";
+        ctx.lineWidth = 2 * scale;
+
+        const spikes = 12;
+        ctx.beginPath();
+        for (let i = 0; i < spikes * 2; i++) {
+            let radius = i % 2 === 0 ? b.size * 1.5 : b.size;
+            let angle = (i / (spikes * 2)) * Math.PI * 2;
+            ctx.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(0, 0, b.size * 0.7, 0, Math.PI * 2);
+        ctx.fillStyle = "#ff4d4d";
+        ctx.fill();
+        ctx.stroke();
+
         ctx.restore();
     }
 
@@ -176,25 +225,23 @@
         birdVelocity += gravityStrength;
         birdY += birdVelocity;
 
-        // Boundary check
         if (birdY + (10 * scale) > viewHeight || birdY - (10 * scale) < 0) gameOver = true;
 
         clouds.forEach(c => { c.x -= c.s; if (c.x + 60 * scale < 0) c.x = viewWidth + 60 * scale; });
         hills.forEach(h => { h.x -= 1 * scale; if (h.x + h.w < 0) h.x = viewWidth; });
 
-        // Pipe Spawning Logic (Fixed)
         if (pipes.length === 0 || (viewWidth - pipes[pipes.length-1].x) > PIPE_SPAWN_DISTANCE * scale) {
             createPipe();
         }
 
         if (frameCount % 150 === 0) spawnButterfly();
+        if (frameCount % 160 === 0) spawnBall(); 
 
         // Update Pipes
         for (let i = pipes.length - 1; i >= 0; i--) {
             pipes[i].x -= currentSpeed;
-
             const birdX = 50 * scale;
-            const birdRadius = 10 * scale; // Slightly smaller hitbox for fairness
+            const birdRadius = 10 * scale;
 
             if (birdX + birdRadius > pipes[i].x && birdX - birdRadius < pipes[i].x + pipes[i].width) {
                 if (birdY - birdRadius < pipes[i].top || birdY + birdRadius > viewHeight - pipes[i].bottom) {
@@ -210,7 +257,6 @@
                     localStorage.setItem('flappyHighScore', highScore);
                 }
             }
-
             if (pipes[i].x + pipes[i].width < 0) pipes.splice(i, 1);
         }
 
@@ -230,8 +276,28 @@
                 butterflies.splice(i, 1);
                 continue;
             }
-
             if (b.x + b.size < 0) butterflies.splice(i, 1);
+        }
+
+        // Update Spiky Balls
+        for (let i = balls.length - 1; i >= 0; i--) {
+            let b = balls[i];
+            // INCREASED SPEED (was 0.8, now 1.2)
+            b.x -= currentSpeed * 1.2; 
+            b.rotation += 0.1; 
+
+            const birdX = 50 * scale;
+            const dx = birdX - b.x;
+            const dy = birdY - b.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < (15 * scale + b.size)) {
+                score = Math.max(0, score - 2); 
+                balls.splice(i, 1);
+                continue;
+            }
+
+            if (b.x + b.size < 0) balls.splice(i, 1);
         }
 
         frameCount++;
@@ -253,6 +319,7 @@
 
         pipes.forEach(p => drawPipe(p));
         butterflies.forEach(b => drawButterfly(b));
+        balls.forEach(b => drawBall(b)); 
         drawBird(50 * scale, birdY);
 
         ctx.fillStyle = "white";
